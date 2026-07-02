@@ -519,20 +519,33 @@ class PESData(Data):
             if len(atm.get_chemical_symbols()) == 1 and not atm.get_pbc().all():
                 atm.info["config_type"] = "IsolatedAtom"
 
-            if "dft_stress" in config:
-                s = convert_stress(config["dft_stress"])
-                atm.info[f"{key_prefix}stress"] = (
-                    f"{s[0][0]:.6f} {s[0][1]:.6f} {s[0][2]:.6f} "
-                    f"{s[1][0]:.6f} {s[1][1]:.6f} {s[1][2]:.6f} "
-                    f"{s[2][0]:.6f} {s[2][1]:.6f} {s[2][2]:.6f}"
-                )
-
-            if "dft_energy" in config:
-                atm.info[f"{key_prefix}energy"] = config["dft_energy"]
-
+            calc_kwargs = {}
             if "dft_forces" in config:
-                atm.set_calculator(SinglePointCalculator(atm, forces=config["dft_forces"]))
-            print(atm.info.get("stress", None))
+                calc_kwargs["forces"] = config["dft_forces"]
+
+            if key_prefix == "":
+                # "energy"/"stress" are reserved keys consumed by ASE's
+                # calculator-results machinery (ase.io.extxyz.write_xyz);
+                # writing them as plain info strings collides with it.
+                if "dft_stress" in config:
+                    calc_kwargs["stress"] = convert_stress(config["dft_stress"])
+                if "dft_energy" in config:
+                    calc_kwargs["energy"] = config["dft_energy"]
+            else:
+                if "dft_stress" in config:
+                    s = convert_stress(config["dft_stress"])
+                    atm.info[f"{key_prefix}stress"] = (
+                        f"{s[0][0]:.6f} {s[0][1]:.6f} {s[0][2]:.6f} "
+                        f"{s[1][0]:.6f} {s[1][1]:.6f} {s[1][2]:.6f} "
+                        f"{s[2][0]:.6f} {s[2][1]:.6f} {s[2][2]:.6f}"
+                    )
+
+                if "dft_energy" in config:
+                    atm.info[f"{key_prefix}energy"] = config["dft_energy"]
+
+            if calc_kwargs:
+                atm.calc = SinglePointCalculator(atm, **calc_kwargs)
+
             with io.StringIO() as buf, redirect_stdout(buf):
                 write("-", atm, format="extxyz", write_results=True, write_info=True)
                 dataset_txt += buf.getvalue()

@@ -714,17 +714,22 @@ class TrainsPotWorkChain(WorkChain):
                 else:
                     self.ctx.lammps_input_structures = self.ctx.dataset
 
-        # Select input structures for LAMMPS avoiding isolated atoms (deterministic: first N)
-        discarded = set()
-        selected = []
+        # Select input structures for LAMMPS avoiding isolated atoms
+        # (deterministic: evenly spaced across the valid structures, so the
+        # selection spans the dataset's diversity instead of clustering on
+        # whichever structures happen to come first)
+        valid_indices = [
+            x
+            for x in range(len(self.ctx.lammps_input_structures))
+            if len(self.ctx.lammps_input_structures.get_ase_item(x)) >= 2  # noqa: PLR2004
+        ]
         num_structures = self.inputs.num_random_structures_lammps.value
-        for x in range(len(self.ctx.lammps_input_structures)):
-            if len(selected) >= num_structures:
-                break
-            if len(self.ctx.lammps_input_structures.get_ase_item(x)) < 2:  # noqa: PLR2004
-                discarded.add(x)
-                continue  # skip isolated atoms
-            selected.append(x)
+        if len(valid_indices) <= num_structures or num_structures <= 1:
+            selected = valid_indices[:num_structures]
+        else:
+            n_valid = len(valid_indices)
+            picks = sorted({round(i * (n_valid - 1) / (num_structures - 1)) for i in range(num_structures)})
+            selected = [valid_indices[p] for p in picks]
         if len(selected) < num_structures:
             self.report(
                 f"Only {len(selected)} input structures for LAMMPS are selected " f"({num_structures} were requested)."
@@ -764,7 +769,7 @@ class TrainsPotWorkChain(WorkChain):
         inputs = self.exposed_inputs(EvaluationCalculation, namespace="committee_evaluation")
 
         inputs["ase_potentials"] = {
-            f"pot_{ii}": self.ctx.potentials_ase[ii] for ii in range(len(self.ctx.potentials_ase))
+            f"pot_{ii}": self.ctx.potentials_pytorch[ii] for ii in range(len(self.ctx.potentials_pytorch))
         }
         if "explored_dataset" in self.ctx:
             inputs["datasets"] = {"labelled": self.ctx.dataset, "exploration": self.ctx.explored_dataset}
@@ -776,7 +781,7 @@ class TrainsPotWorkChain(WorkChain):
 
     def finalize_dataset_augmentation(self):
         """Finalize dataset augmentation."""
-        self.ctx.dataset += self.ctx.dataset_augmentation.outputs.structures.global_structures
+        self.ctx.dataset = self.ctx.dataset_augmentation.outputs.structures.global_structures
         self.ctx.input_lammps_dataset = self.ctx.dataset
 
     def finalize_ab_initio_labelling(self):
@@ -793,6 +798,7 @@ class TrainsPotWorkChain(WorkChain):
 
         self.ctx.potentials_ase = []
         self.ctx.potentials_lammps = []
+        self.ctx.potentials_pytorch = []
         self.ctx.potential_checkpoints = []
         for _, calc in enumerate(self.ctx.training.outputs.training.values()):
             if "checkpoints" in calc:
@@ -808,6 +814,10 @@ class TrainsPotWorkChain(WorkChain):
             if "model" in calc:
                 self.ctx.potentials_lammps.append(calc["model"])
                 self.ctx.potentials_ase.append(calc["model"])
+            if "model_stage2_pytorch" in calc:
+                self.ctx.potentials_pytorch.append(calc["model_stage2_pytorch"])
+            elif "model_stage1_pytorch" in calc:
+                self.ctx.potentials_pytorch.append(calc["model_stage1_pytorch"])
 
         self.ctx.dataset = self.ctx.training.outputs.global_splitted
 

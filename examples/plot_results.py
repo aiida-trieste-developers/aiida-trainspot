@@ -10,11 +10,11 @@ load_profile()
 
 # %%
 
-plot_parity(load_node(1069011))  # tutti i cicli completati
+plot_parity(load_node(1218356))  # tutti i cicli completati
 # plot_parity(load_node(1069011), cycles=[1, 3])     # solo cicli 1 e 3
 # plot_parity(load_node(1069011), show=False, save_path="parity.png")
 
 # %%
-plot_error_calibration(load_node(1069011))  # tutti i cicli
+plot_error_calibration(load_node(1218356))  # tutti i cicli
 # plot_error_calibration(load_node(1069011), cycles=[2])  # solo ciclo 2
 # plot_error_calibration(load_node(1069011), sets=["training", "test"])
