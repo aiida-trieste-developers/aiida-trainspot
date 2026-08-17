@@ -43,7 +43,7 @@ class MetaTrainCalculation(CalcJob):
             "num_machines": 1,
             "num_mpiprocs_per_machine": 1,
         }
-        spec.inputs["metadata"]["options"]["parser_name"].default = "trains_pot.metatrain"
+        spec.inputs["metadata"]["options"]["parser_name"].default = "trainspot.metatrain"
 
         spec.input(
             "training_set",

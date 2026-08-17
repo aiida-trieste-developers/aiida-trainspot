@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>aiida_trains_pot.utils.install_portable_codes &#8212; AiiDA-TrainsPot 1.0.0 documentation</title>
+    <title>aiida_trainspot.utils.install_portable_codes &#8212; AiiDA-TrainsPot 1.0.0 documentation</title>
 
 
 
@@ -47,7 +47,7 @@
     <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
     <script src="../../../_static/copybutton.js?v=4398fdc2"></script>
     <script src="../../../_static/scripts/sphinx-book-theme.js?v=887ef09a"></script>
-    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/aiida_trains_pot/utils/install_portable_codes';</script>
+    <script>DOCUMENTATION_OPTIONS.pagename = '_modules/aiida_trainspot/utils/install_portable_codes';</script>
     <link rel="search" type="application/opensearchdescription+xml"
           title="Search within AiiDA-TrainsPot 1.0.0 documentation"
           href="../../../_static/opensearch.xml"/>
@@ -165,7 +165,7 @@
 </details></li>
 <li class="toctree-l1 has-children"><a class="reference internal" href="../../../module_guide/index.html">API reference</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
 <li class="toctree-l2 has-children"><a class="reference internal" href="../../../module_guide/workchains/index.html">Workchains</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul>
-<li class="toctree-l3 has-children"><a class="reference internal" href="../../../module_guide/workchains/trains_pot_wc.html">Main TrainsPot WorkChain</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="simple">
+<li class="toctree-l3 has-children"><a class="reference internal" href="../../../module_guide/workchains/trainspot_wc.html">Main TrainsPot WorkChain</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="simple">
 </ul>
 </details></li>
 <li class="toctree-l3 has-children"><a class="reference internal" href="../../../module_guide/workchains/augmentation_wc.html">Dataset Augmentation WorkChain</a><details><summary><span class="toctree-toggle" role="presentation"><i class="fa-solid fa-chevron-down"></i></span></summary><ul class="simple">
@@ -276,7 +276,7 @@
 
 
 
-      <li><a href="https://github.com/aiida-trieste-developers/aiida-trains-pot/issues/new?title=Issue%20on%20page%20%2F_modules/aiida_trains_pot/utils/install_portable_codes.html&body=Your%20issue%20content%20here." target="_blank"
+      <li><a href="https://github.com/aiida-trieste-developers/aiida-trains-pot/issues/new?title=Issue%20on%20page%20%2F_modules/aiida_trainspot/utils/install_portable_codes.html&body=Your%20issue%20content%20here." target="_blank"
    class="btn btn-sm btn-source-issues-button dropdown-item"
    title="Open an issue"
    data-bs-placement="left" data-bs-toggle="tooltip"
@@ -330,11 +330,11 @@
 <div id="searchbox"></div>
                 <article class="bd-article">
 
-  <h1>Source code for aiida_trains_pot.utils.install_portable_codes</h1><div class="highlight"><pre>
+  <h1>Source code for aiida_trainspot.utils.install_portable_codes</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
 <span class="kn">from</span> <span class="nn">aiida.orm</span> <span class="kn">import</span> <span class="n">PortableCode</span>
 <span class="kn">from</span> <span class="nn">aiida</span> <span class="kn">import</span> <span class="n">load_profile</span>
-<span class="kn">import</span> <span class="nn">aiida_trains_pot</span>
+<span class="kn">import</span> <span class="nn">aiida_trainspot</span>
 <span class="kn">from</span> <span class="nn">aiida.orm</span> <span class="kn">import</span> <span class="n">Code</span>
 <span class="kn">import</span> <span class="nn">argparse</span>
 <span class="n">load_profile</span><span class="p">()</span>
@@ -342,7 +342,7 @@
 
 <span class="k">def</span> <span class="nf">install_committee_evaluation</span><span class="p">(</span><span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;committee_evaluation_portable&#39;</span><span class="p">,</span> <span class="n">prepend</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">append</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
 
-    <span class="n">committee_evaluation_path</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">aiida_trains_pot</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s1">&#39;portable_codes/committee_evaluation/&#39;</span><span class="p">)</span>
+    <span class="n">committee_evaluation_path</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="n">aiida_trainspot</span><span class="o">.</span><span class="n">__path__</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s1">&#39;portable_codes/committee_evaluation/&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">prepend</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">prepend</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Prepend command (es. source mace_env/bin/activate): &quot;</span><span class="p">)</span>
@@ -375,7 +375,7 @@
 
 
 <div class="viewcode-block" id="main">
-<a class="viewcode-back" href="../../../module_guide/scripts.html#aiida_trains_pot.utils.install_portable_codes.main">[docs]</a>
+<a class="viewcode-back" href="../../../module_guide/scripts.html#aiida_trainspot.utils.install_portable_codes.main">[docs]</a>
 <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Install or list portable codes.&#39;</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-l&#39;</span><span class="p">,</span> <span class="s1">&#39;--list&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;List existing codes&#39;</span><span class="p">)</span>

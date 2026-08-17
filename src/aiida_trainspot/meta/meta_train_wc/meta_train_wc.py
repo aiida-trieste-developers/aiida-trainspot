@@ -15,7 +15,7 @@ from aiida.plugins import CalculationFactory
 
 load_profile()
 
-MetaCalculation = CalculationFactory("trains_pot.metatrain")
+MetaCalculation = CalculationFactory("trainspot.metatrain")
 
 
 class MetaTrainWorkChain(BaseRestartWorkChain):

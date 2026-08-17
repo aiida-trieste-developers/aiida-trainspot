@@ -1,7 +1,7 @@
 ---
 label: "mace_postprocess"
 description: "Perform MACE post-processing"
-default_calc_job_plugin: "trains_pot.macetrain"
+default_calc_job_plugin: "trainspot.macetrain"
 filepath_executable: "mace_create_lammps_model"
 computer: "leo1_scratch_mace"
 prepend_text: |

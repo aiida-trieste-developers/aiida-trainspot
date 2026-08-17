@@ -1,7 +1,7 @@
 ---
 label: "mace_train"
 description: "Perform MACE training"
-default_calc_job_plugin: "trains_pot.macetrain"
+default_calc_job_plugin: "trainspot.macetrain"
 filepath_executable: "mace_run_train"
 computer: "leo1_scratch_mace"
 prepend_text: |

@@ -10,7 +10,7 @@ from aiida.common import datastructures
 from aiida.engine import CalcJob
 from aiida.orm import Bool, Code, Dict, FolderData, List, RemoteData, SinglefileData, Str
 
-from aiida_trains_pot.data.pesdata import PESData
+from aiida_trainspot.data.pesdata import PESData
 
 
 def validate_protocol(node, _):
@@ -58,7 +58,7 @@ class MaceTrainCalculation(CalcJob):
             "num_machines": 1,
             "num_mpiprocs_per_machine": 1,
         }
-        spec.inputs["metadata"]["options"]["parser_name"].default = "trains_pot.macetrain"
+        spec.inputs["metadata"]["options"]["parser_name"].default = "trainspot.macetrain"
         # ADD input parameters
 
         # new ports

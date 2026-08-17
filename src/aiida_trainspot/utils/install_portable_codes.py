@@ -7,16 +7,14 @@ from pathlib import Path
 from aiida import load_profile
 from aiida.orm import Code, PortableCode
 
-import aiida_trains_pot
+import aiida_trainspot
 
 load_profile()
 
 
 def install_committee_evaluation(label="committee_evaluation_portable", prepend=None, append=None):
     """Install the portable code for committee evaluation."""
-    committee_evaluation_path = Path.joinpath(
-        Path(aiida_trains_pot.__path__[0]), "portable_codes/committee_evaluation/"
-    )
+    committee_evaluation_path = Path.joinpath(Path(aiida_trainspot.__path__[0]), "portable_codes/committee_evaluation/")
 
     if prepend is None:
         prepend = input("Prepend command (es. source mace_env/bin/activate): ")

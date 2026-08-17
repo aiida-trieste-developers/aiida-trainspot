@@ -4,7 +4,7 @@
 from aiida import load_profile
 from aiida.orm import load_node
 
-from aiida_trains_pot.utils.plotting import plot_error_calibration, plot_parity
+from aiida_trainspot.utils.plotting import plot_error_calibration, plot_parity
 
 load_profile()
 

@@ -13,7 +13,7 @@ from aiida.orm import FolderData, List, SinglefileData
 from aiida.parsers.parser import Parser
 from aiida.plugins import CalculationFactory
 
-MaceTrainCalculation = CalculationFactory("trains_pot.macetrain")
+MaceTrainCalculation = CalculationFactory("trainspot.macetrain")
 
 
 def parse_tables_from_singlefiledata(node):

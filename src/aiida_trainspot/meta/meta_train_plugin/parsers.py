@@ -11,7 +11,7 @@ from aiida.orm import FolderData, List, SinglefileData
 from aiida.parsers.parser import Parser
 from aiida.plugins import CalculationFactory
 
-MetaTrainCalculation = CalculationFactory("trains_pot.metatrain")
+MetaTrainCalculation = CalculationFactory("trainspot.metatrain")
 
 
 def parse_tables_from_singlefiledata(node):

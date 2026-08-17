@@ -10,7 +10,7 @@ from aiida.plugins import CalculationFactory
 
 load_profile()
 
-MaceCalculation = CalculationFactory("trains_pot.macetrain")
+MaceCalculation = CalculationFactory("trainspot.macetrain")
 
 
 class MaceTrainWorkChain(BaseRestartWorkChain):

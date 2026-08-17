@@ -10,8 +10,8 @@ from aiida.orm import Bool, Dict, Float, FolderData, Int, List, SinglefileData, 
 from aiida_quantumespresso.workflows.pw.base import PwBaseWorkChain
 from ase import Atoms
 
-from aiida_trains_pot.utils.generate_config import generate_lammps_md_config
-from aiida_trains_pot.utils.tools import enlarge_vacuum, error_calibration
+from aiida_trainspot.utils.generate_config import generate_lammps_md_config
+from aiida_trainspot.utils.tools import enlarge_vacuum, error_calibration
 
 from ..calculations.evaluation import EvaluationCalculation
 from ..data.pesdata import PESData
