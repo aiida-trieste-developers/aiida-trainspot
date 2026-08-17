@@ -7,14 +7,13 @@ from pathlib import Path
 
 from aiida.engine import WorkChain, append_, while_
 from aiida.orm import Dict, Float, List, SinglefileData, Str, StructureData
-from aiida.plugins import DataFactory, WorkflowFactory
 from aiida_lammps.data.potential import LammpsPotentialData
+from aiida_lammps.workflows.base import LammpsBaseWorkChain as LammpsWorkChain
 from aiida_quantumespresso.workflows.protocols.utils import recursive_merge
 
 from aiida_trains_pot.utils.lammps_pair_coeffs import get_dftd2_pair_coeffs, get_mace_pair_coeff, get_meta_pair_coeff
 
-LammpsWorkChain = WorkflowFactory("lammps.base")
-PESData = DataFactory("pesdata")
+from ..data.pesdata import PESData
 
 
 def generate_potential(potential, pair_style) -> LammpsPotentialData:

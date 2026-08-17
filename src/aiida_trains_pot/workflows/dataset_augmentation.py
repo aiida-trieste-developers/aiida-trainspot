@@ -12,16 +12,12 @@ import numpy as np
 from aiida import load_profile
 from aiida.engine import WorkChain, calcfunction, if_
 from aiida.orm import Bool, Float, Int, List
-from aiida.plugins import DataFactory
 from ase import Atoms
 from ase.build import surface
 
+from ..data.pesdata import PESData
+
 load_profile()
-
-
-StructureData = DataFactory("core.structure")
-SinglefileData = DataFactory("core.singlefile")
-PESData = DataFactory("pesdata")
 
 
 def ase_to_dict(ase_structure):

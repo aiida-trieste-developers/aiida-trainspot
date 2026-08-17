@@ -1,16 +1,10 @@
-"""Calculations provided by aiida_diff.
-
-Register calculations via the "aiida.calculations" entry point in setup.json.
-"""
+"""Evaluation calculation for evaluating potentials against datasets."""
 
 from aiida.common import datastructures
 from aiida.engine import CalcJob
-from aiida.orm import Dict, SinglefileData
-from aiida.plugins import DataFactory
+from aiida.orm import ArrayData, Dict, SinglefileData
 
-# MaceWorkChain = WorkflowFactory('maceworkchain')
-PESData = DataFactory("pesdata")
-ArrayData = DataFactory("core.array")
+from ..data.pesdata import PESData
 
 
 class EvaluationCalculation(CalcJob):

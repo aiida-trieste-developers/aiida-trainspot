@@ -3,12 +3,11 @@
 from aiida.common import AttributeDict
 from aiida.engine import WorkChain, append_, calcfunction, while_
 from aiida.orm import Dict, Group, Int, Str, StructureData, load_group
-from aiida.plugins import DataFactory, WorkflowFactory
 from aiida_quantumespresso.utils.mapping import prepare_process_inputs
 from aiida_quantumespresso.workflows.protocols.utils import recursive_merge
+from aiida_quantumespresso.workflows.pw.base import PwBaseWorkChain
 
-PwBaseWorkChain = WorkflowFactory("quantumespresso.pw.base")
-PESData = DataFactory("pesdata")
+from ..data.pesdata import PESData
 
 
 @calcfunction

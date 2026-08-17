@@ -5,11 +5,12 @@ import random
 
 from aiida.engine import WorkChain, append_, calcfunction
 from aiida.orm import Bool, Float, FolderData, Int, Str
-from aiida.plugins import DataFactory, WorkflowFactory
+from aiida.plugins import WorkflowFactory
+
+from aiida_trains_pot.data.pesdata import PESData
 
 MetaWorkChain = WorkflowFactory("trains_pot.metatrain")
 MaceWorkChain = WorkflowFactory("trains_pot.macetrain")
-PESData = DataFactory("pesdata")
 
 DEFAULT_NON_TRAIN_FRAC = Float(0.2)
 DEFAULT_SEED = Int(42)

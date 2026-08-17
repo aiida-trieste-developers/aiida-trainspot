@@ -37,7 +37,7 @@ def convert_stress(stress):
                     [stress[6], stress[7], stress[8]],
                 ]
             )
-    return stress
+    return np.array(stress)
 
 
 class PESData(Data):
@@ -522,18 +522,17 @@ class PESData(Data):
 
             if "dft_stress" in config:
                 s = convert_stress(config["dft_stress"])
-                atm.info[f"{key_prefix}stress"] = (
-                    f"{s[0][0]:.6f} {s[0][1]:.6f} {s[0][2]:.6f} "
-                    f"{s[1][0]:.6f} {s[1][1]:.6f} {s[1][2]:.6f} "
-                    f"{s[2][0]:.6f} {s[2][1]:.6f} {s[2][2]:.6f}"
-                )
+                if key_prefix:
+                    atm.info[f"{key_prefix}stress"] = " ".join(f"{v:.6f}" for v in s.reshape(-1))
+                else:
+                    atm.info["stress"] = s.reshape(3, 3)
 
             if "dft_energy" in config:
                 atm.info[f"{key_prefix}energy"] = config["dft_energy"]
 
             if "dft_forces" in config:
                 atm.set_calculator(SinglePointCalculator(atm, forces=config["dft_forces"]))
-            print(atm.info.get("stress", None))
+
             with io.StringIO() as buf, redirect_stdout(buf):
                 write("-", atm, format="extxyz", write_results=True, write_info=True)
                 dataset_txt += buf.getvalue()

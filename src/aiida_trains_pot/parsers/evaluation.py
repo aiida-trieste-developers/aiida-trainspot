@@ -1,19 +1,14 @@
-"""Parsers provided by aiida_diff.
-
-Register parsers via the "aiida.parsers" entry point in setup.json.
-"""
+"""Parsers for EvaluationCalculation."""
 
 import numpy as np
 
 from aiida.common import exceptions
 from aiida.engine import ExitCode
-from aiida.orm import Dict, SinglefileData
+from aiida.orm import ArrayData, Dict, SinglefileData
 from aiida.parsers.parser import Parser
-from aiida.plugins import CalculationFactory, DataFactory
 
-EvaluationCalculation = CalculationFactory("trains_pot.evaluation")
-PESData = DataFactory("pesdata")
-ArrayData = DataFactory("core.array")
+from ..calculations.evaluation import EvaluationCalculation
+from ..data.pesdata import PESData
 
 
 class EvaluationParser(Parser):

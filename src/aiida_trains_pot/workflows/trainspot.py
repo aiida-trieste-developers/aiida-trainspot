@@ -7,23 +7,21 @@ from aiida import load_profile
 from aiida.common import AttributeDict
 from aiida.engine import WorkChain, calcfunction, if_, while_
 from aiida.orm import Bool, Dict, Float, FolderData, Int, List, SinglefileData, Str, StructureData
-from aiida.plugins import CalculationFactory, DataFactory, WorkflowFactory
+from aiida_quantumespresso.workflows.pw.base import PwBaseWorkChain
 from ase import Atoms
 
 from aiida_trains_pot.utils.generate_config import generate_lammps_md_config
 from aiida_trains_pot.utils.tools import enlarge_vacuum, error_calibration
 
+from ..calculations.evaluation import EvaluationCalculation
+from ..data.pesdata import PESData
+from .dataset_augmentation import DatasetAugmentationWorkChain
+from .exploration import ExplorationWorkChain
+from .labelling import AbInitioLabellingWorkChain
+from .training import TrainingWorkChain
+
 load_profile()
 
-# LammpsCalculation = CalculationFactory('lammps_base')
-DatasetAugmentationWorkChain = WorkflowFactory("trains_pot.datasetaugmentation")
-TrainingWorkChain = WorkflowFactory("trains_pot.training")
-AbInitioLabellingWorkChain = WorkflowFactory("trains_pot.labelling")
-ExplorationWorkChain = WorkflowFactory("trains_pot.exploration")
-EvaluationCalculation = CalculationFactory("trains_pot.evaluation")
-PESData = DataFactory("pesdata")
-
-PwBaseWorkChain = WorkflowFactory("quantumespresso.pw.base")
 
 ALLOWED_ENGINES = ["MACE", "META"]
 

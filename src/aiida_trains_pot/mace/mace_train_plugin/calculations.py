@@ -9,9 +9,8 @@ import yaml
 from aiida.common import datastructures
 from aiida.engine import CalcJob
 from aiida.orm import Bool, Code, Dict, FolderData, List, RemoteData, SinglefileData, Str
-from aiida.plugins import DataFactory
 
-PESData = DataFactory("pesdata")
+from aiida_trains_pot.data.pesdata import PESData
 
 
 def validate_protocol(node, _):

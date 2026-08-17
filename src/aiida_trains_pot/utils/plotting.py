@@ -36,6 +36,12 @@ _RC = {
 def _find_eval_nodes(trainspot_node):
     from aiida.orm import CalcJobNode
 
+    if (
+        isinstance(trainspot_node, CalcJobNode)
+        and trainspot_node.process_label == "EvaluationCalculation"
+        and trainspot_node.is_finished_ok
+    ):
+        return [trainspot_node]
     nodes = [
         link.node
         for link in trainspot_node.base.links.get_outgoing().all()
