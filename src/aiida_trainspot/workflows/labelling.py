@@ -3,6 +3,7 @@
 from aiida.common import AttributeDict
 from aiida.engine import WorkChain, append_, calcfunction, while_
 from aiida.orm import Dict, Group, Int, Str, StructureData, load_group
+from aiida.plugins import WorkflowFactory
 from aiida_quantumespresso.utils.mapping import prepare_process_inputs
 from aiida_quantumespresso.workflows.protocols.utils import recursive_merge
 from aiida_quantumespresso.workflows.pw.base import PwBaseWorkChain
@@ -58,6 +59,21 @@ class AbInitioLabellingWorkChain(WorkChain):
             exclude=("pw.structure",),
             namespace_options={"validator": None},
         )
+        spec.input(
+            "dft_engine_entry_point",
+            valid_type=Str,
+            required=False,
+            help="Entry point of the workchain used to run each DFT calculation, if different from the standard "
+            "one. Advanced use: substitute an alternative implementation, e.g. wrapping a different DFT code or "
+            "restart/error-handling strategy.",
+        )
+        spec.input_namespace(
+            "dft_engine_extra",
+            dynamic=True,
+            required=False,
+            help="Extra inputs forwarded as-is to the selected `dft_engine_entry_point`, for engines that require "
+            "inputs beyond the standard `quantumespresso` namespace (e.g. an additional code/computer).",
+        )
         spec.output(
             "ab_initio_labelling_data",
             valid_type=PESData,
@@ -80,7 +96,10 @@ class AbInitioLabellingWorkChain(WorkChain):
         return self.ctx.config < len(self.ctx.unlabelled_structures)
 
     def run_ab_initio_labelling(self):
-        """Run PwBaseWorkChain for each structure."""
+        """Run the configured DFT engine workchain for each structure."""
+        dft_engine_entry_point = self.inputs.get("dft_engine_entry_point")
+        engine = WorkflowFactory(dft_engine_entry_point.value) if dft_engine_entry_point else PwBaseWorkChain
+
         # Create or load a group to track the calculations
         if hasattr(self.inputs, "group_label"):
             group_label = self.inputs.group_label.value
@@ -104,6 +123,7 @@ class AbInitioLabellingWorkChain(WorkChain):
 
             # Prepare inputs
             inputs = AttributeDict(self.exposed_inputs(PwBaseWorkChain, namespace="quantumespresso"))
+            inputs.update(self.inputs.get("dft_engine_extra", {}))
             inputs.pw.structure = str_data
             inputs.metadata.call_link_label = f"ab_initio_labelling_config_{self.ctx.config}"
 
@@ -119,9 +139,9 @@ class AbInitioLabellingWorkChain(WorkChain):
             default_inputs = {"CONTROL": {"calculation": "scf", "tstress": True, "tprnfor": True}}
             inputs.pw.parameters = Dict(recursive_merge(default_inputs, inputs.pw.parameters.get_dict()))
 
-            inputs = prepare_process_inputs(PwBaseWorkChain, inputs)
+            inputs = prepare_process_inputs(engine, inputs)
             # Submit the workchain
-            future = self.submit(PwBaseWorkChain, **inputs)
+            future = self.submit(engine, **inputs)
             self.report(f"Launched AbInitioLabellingWorkChain for configuration {self.ctx.config} <{future.pk}>")
 
             # Add the calculation to the group

@@ -501,6 +501,7 @@ class TrainsPotWorkChain(WorkChain):
         abinitiolabeling_protocol=None,
         pseudo_family=None,
         md_protocol=None,
+        dft_engine_entry_point=None,
         **kwargs,
     ):
         """Return a builder prepopulated with protocol defaults."""
@@ -523,6 +524,8 @@ class TrainsPotWorkChain(WorkChain):
         )
 
         builder.ab_initio_labelling.quantumespresso = qe_builder
+        if dft_engine_entry_point:
+            builder.ab_initio_labelling.dft_engine_entry_point = Str(dft_engine_entry_point)
 
         # ---------- LAMMPS ----------
         if md_protocol not in (None, "vdw_d2"):
