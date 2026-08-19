@@ -23,7 +23,7 @@ from .training import TrainingWorkChain
 load_profile()
 
 
-ALLOWED_ENGINES = ["MACE", "META"]
+ALLOWED_ENGINES = ["MACE", "META", "NEQUIP"]
 
 
 @calcfunction

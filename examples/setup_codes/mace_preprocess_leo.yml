@@ -1,7 +1,7 @@
 ---
 label: "mace_preprocess"
 description: "Perform MACE pre-processing"
-default_calc_job_plugin: "trainspot.macetrain"
+default_calc_job_plugin: "mace"
 filepath_executable: "mace_prepare_data"
 computer: "leo1_scratch_mace"
 prepend_text: |

@@ -37,8 +37,6 @@ Source = "https://github.com/aiida-trieste-developers/aiida-trains-pot"
 
 [project.entry-points.'aiida.workflows']
 "trainspot.datasetaugmentation"   = "aiida_trainspot.workflows.dataset_augmentation:DatasetAugmentationWorkChain"
-"trainspot.macetrain"        = "aiida_trainspot.mace.mace_train_wc.mace_train_wc:MaceTrainWorkChain"
-"trainspot.metatrain"        = "aiida_trainspot.meta.meta_train_wc.meta_train_wc:MetaTrainWorkChain"
 "trainspot.labelling"        = "aiida_trainspot.workflows.labelling:AbInitioLabellingWorkChain"
 "trainspot.training"         = "aiida_trainspot.workflows.training:TrainingWorkChain"
 "trainspot.exploration"      = "aiida_trainspot.workflows.exploration:ExplorationWorkChain"
@@ -47,17 +45,13 @@ Source = "https://github.com/aiida-trieste-developers/aiida-trains-pot"
 
 
 [project.entry-points.'aiida.calculations']
-"trainspot.macetrain"        = "aiida_trainspot.mace.mace_train_plugin.calculations:MaceTrainCalculation"
-"trainspot.metatrain"        = "aiida_trainspot.meta.meta_train_plugin.calculations:MetaTrainCalculation"
 "trainspot.evaluation"       = "aiida_trainspot.calculations.evaluation:EvaluationCalculation"
 
 [project.entry-points.'aiida.parsers']
-"trainspot.macetrain"        = "aiida_trainspot.mace.mace_train_plugin.parsers:MaceBaseParser"
-"trainspot.metatrain"        = "aiida_trainspot.meta.meta_train_plugin.parsers:MetaBaseParser"
 "trainspot.evaluation"       = "aiida_trainspot.parsers.evaluation:EvaluationParser"
 
 [project.entry-points."aiida.data"]
-"pesdata"                 = "aiida_trainspot.data.pesdata:PESData"
+"pesdata"                    = "aiida_trainspot.data.pesdata:PESData"
 
 
 
@@ -66,6 +60,8 @@ Source = "https://github.com/aiida-trieste-developers/aiida-trains-pot"
 portable_codes_installation = "aiida_trainspot.utils.install_portable_codes:main"
 
 [project.optional-dependencies]
+mace = ["aiida-mace"]
+metatrain = ["aiida-metatrain"]
 docs = [
     "aiida-core~=2.5",
     "docutils",
@@ -78,6 +74,7 @@ docs = [
     "furo",
     "markupsafe"
 ]
+all = ["mace", "metatrain", "docs"]
 
 [tool.flit.module]
 name = "aiida_trainspot"

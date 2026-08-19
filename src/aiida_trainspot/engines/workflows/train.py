@@ -1,30 +1,29 @@
-"""Equation of State WorkChain."""
+"""Base WorkChain shared by all training engines (MACE, METATRAIN, ...)."""
 
 import os
 
-from aiida import load_profile
 from aiida.common.extendeddicts import AttributeDict
 from aiida.engine import BaseRestartWorkChain, ProcessHandlerReport, process_handler, while_
 from aiida.orm import FolderData
-from aiida.plugins import CalculationFactory
-
-load_profile()
-
-MaceCalculation = CalculationFactory("trainspot.macetrain")
 
 
-class MaceTrainWorkChain(BaseRestartWorkChain):
-    """WorkChain to launch MACE training."""
+class TrainWorkChain(BaseRestartWorkChain):
+    """Common WorkChain to launch the training of a machine-learning potential.
 
-    _process_class = MaceCalculation
+    Subclasses only need to set ``_process_class`` to the ``CalcJob`` that runs the
+    training engine. The engine's exit codes must define an ``ERROR_OUT_OF_WALLTIME``
+    label for the restart-on-walltime handler to trigger.
+    """
+
+    _process_class = None
 
     @classmethod
     def define(cls, spec):
         """Specify inputs and outputs."""
         super().define(spec)
 
-        spec.expose_inputs(MaceCalculation, namespace="train", namespace_options={"validator": None})
-        spec.expose_outputs(MaceCalculation)
+        spec.expose_inputs(cls._process_class, namespace="train", namespace_options={"validator": None})
+        spec.expose_outputs(cls._process_class)
         spec.input_namespace(
             "checkpoints",
             valid_type=FolderData,
@@ -83,19 +82,24 @@ class MaceTrainWorkChain(BaseRestartWorkChain):
 
         This ``self.ctx.inputs`` dictionary will be used by the ``BaseRestartWorkChain`` to submit the calculations
         in the internal loop.
-
-        The ``parameters`` and ``settings`` input ``Dict`` nodes are converted into a regular dictionary and the
-        default namelists for the ``parameters`` are set to empty dictionaries if not specified.
         """
         super().setup()
-        self.ctx.inputs = AttributeDict(self.exposed_inputs(MaceCalculation, namespace="train"))
+        self.ctx.inputs = AttributeDict(self.exposed_inputs(self._process_class, namespace="train"))
 
-    @process_handler(
-        priority=610,
-        exit_codes=[
-            MaceCalculation.exit_codes.ERROR_OUT_OF_WALLTIME,  # pylint: disable=no-member
-        ],
-    )
+    def restart_from(self, calculation):
+        """Set the inputs of the next calculation so that it resumes from ``calculation``.
+
+        Default implementation copies the checkpoint files out of the previous calculation's
+        retrieved output (see :meth:`set_restart`). Engines whose ``CalcJob`` can resume in place
+        from a remote folder (avoiding a costly re-upload of datasets/checkpoints already present
+        on the remote computer) should override this method, e.g. by setting
+        ``self.ctx.inputs.parent_folder = calculation.outputs.remote_folder``.
+
+        :param calculation: node from the previous calculation
+        """
+        self.set_restart(calculation=calculation)
+
+    @process_handler(priority=610)
     def handle_out_of_walltime(self, calculation):
         """Handle calculations where the walltime was reached.
 
@@ -104,10 +108,13 @@ class MaceTrainWorkChain(BaseRestartWorkChain):
 
         Use a stored restart file in the repository from the previous calculation.
         """
+        if calculation.exit_status != self._process_class.exit_codes.ERROR_OUT_OF_WALLTIME.status:  # pylint: disable=no-member
+            return None
+
         self.report("Walltime reached attempting restart")
 
         if "retrieved" in calculation.outputs:
-            self.ctx.inputs.parent_folder = calculation.outputs.remote_folder
+            self.restart_from(calculation)
             self.report_error_handled(
                 calculation,
                 "restarting from the stored checkpoints",
