@@ -354,7 +354,7 @@ class TrainsPotWorkChain(WorkChain):
         spec.expose_inputs(
             EvaluationCalculation,
             namespace="committee_evaluation",
-            exclude=("mace_potentials", "datasetlist"),
+            exclude=("engine", "ase_potentials", "datasets"),
         )
 
         spec.output(
@@ -495,10 +495,10 @@ class TrainsPotWorkChain(WorkChain):
     def get_builder(
         cls,
         dataset,
-        abinitiolabeling_code,
+        abinitiolabelling_code,
         md_code,
-        training_code=None,
-        abinitiolabeling_protocol=None,
+        training_engine=None,
+        abinitiolabelling_protocol=None,
         pseudo_family=None,
         md_protocol=None,
         dft_engine_entry_point=None,
@@ -509,7 +509,7 @@ class TrainsPotWorkChain(WorkChain):
         builder.dataset = dataset
 
         # ---------- Quantum ESPRESSO ----------
-        qe_protocol = abinitiolabeling_protocol or "stringent"
+        qe_protocol = abinitiolabelling_protocol or "stringent"
 
         atomic_species = dataset.get_atomic_species()
         fictitious_structure = StructureData(ase=Atoms(atomic_species))
@@ -518,7 +518,7 @@ class TrainsPotWorkChain(WorkChain):
 
         qe_builder = PwBaseWorkChain.get_builder_from_protocol(
             protocol=qe_protocol,
-            code=abinitiolabeling_code,
+            code=abinitiolabelling_code,
             structure=fictitious_structure,
             overrides=overrides,
         )
@@ -526,6 +526,10 @@ class TrainsPotWorkChain(WorkChain):
         builder.ab_initio_labelling.quantumespresso = qe_builder
         if dft_engine_entry_point:
             builder.ab_initio_labelling.dft_engine_entry_point = Str(dft_engine_entry_point)
+
+        # ---------- Training ----------
+        if training_engine:
+            builder.training_engine = training_engine
 
         # ---------- LAMMPS ----------
         if md_protocol not in (None, "vdw_d2"):
@@ -757,6 +761,7 @@ class TrainsPotWorkChain(WorkChain):
         """Run committee evaluation."""
         inputs = self.exposed_inputs(EvaluationCalculation, namespace="committee_evaluation")
 
+        inputs["engine"] = self.inputs.training_engine
         inputs["ase_potentials"] = {
             f"pot_{ii}": self.ctx.potentials_ase[ii] for ii in range(len(self.ctx.potentials_ase))
         }
