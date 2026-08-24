@@ -2,7 +2,7 @@
 
 from aiida.common import datastructures
 from aiida.engine import CalcJob
-from aiida.orm import ArrayData, Dict, SinglefileData
+from aiida.orm import ArrayData, Dict, SinglefileData, Str
 
 from ..data.pesdata import PESData
 
@@ -26,6 +26,13 @@ class EvaluationCalculation(CalcJob):
         spec.inputs["metadata"]["options"]["parser_name"].default = "trainspot.evaluation"
 
         # new ports
+        spec.input(
+            "engine",
+            valid_type=Str,
+            required=True,
+            help="Which engine trained the committee members (MACE/META/NEQUIP); picks the evaluation "
+            "backend in the portable code (forwarded as --engine).",
+        )
         spec.input_namespace(
             "ase_potentials",
             valid_type=SinglefileData,
@@ -53,6 +60,12 @@ class EvaluationCalculation(CalcJob):
             valid_type=ArrayData,
             help="Data for parity plots between DFT and DNN quantities for the different sets.",
         )
+        spec.output_namespace(
+            "deviation",
+            valid_type=Dict,
+            required=False,
+            help="Committee disagreement statistics per set, available even without a DFT reference.",
+        )
 
         spec.exit_code(
             300,
@@ -70,6 +83,7 @@ class EvaluationCalculation(CalcJob):
         codeinfo = datastructures.CodeInfo()
         codeinfo.code_uuid = self.inputs.code.uuid
         codeinfo.stdout_name = "evaluation.out"
+        codeinfo.cmdline_params = ["--engine", self.inputs.engine.value]
 
         calcinfo = datastructures.CalcInfo()
         calcinfo.local_copy_list = []

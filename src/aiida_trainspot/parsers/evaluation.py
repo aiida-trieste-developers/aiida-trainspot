@@ -41,6 +41,7 @@ class EvaluationParser(Parser):
         datasets = {}
         rmse = {}
         parity = {}
+        deviation = {}
         # add output file
         for file in files_retrieved:
             output_filename = file
@@ -67,8 +68,17 @@ class EvaluationParser(Parser):
                 with output_node.open(mode="rb") as handle:
                     parity[output_name] = ArrayData(np.load(handle, allow_pickle=True)["parity"].tolist())
 
+            if "dataset" in output_filename and "deviation" in output_filename:
+                output_name = output_filename.replace("_deviation.npz", "").replace("dataset_", "")
+                with self.retrieved.open(output_filename, "rb") as handle:
+                    output_node = SinglefileData(file=handle)
+                with output_node.open(mode="rb") as handle:
+                    deviation[output_name] = Dict(np.load(handle, allow_pickle=True)["deviation"].tolist())
+
         self.out("evaluated_datasets", datasets)
         self.out("rmse", rmse)
         self.out("parity_data", parity)
+        if deviation:
+            self.out("deviation", deviation)
 
         return ExitCode(0)
