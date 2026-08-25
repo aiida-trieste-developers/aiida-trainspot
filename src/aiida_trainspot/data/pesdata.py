@@ -494,7 +494,14 @@ class PESData(Data):
 
             if "dft_stress" in config:
                 s = convert_stress(config["dft_stress"])
-                atm.info[f"{key_prefix}stress"] = " ".join(f"{v:.6f}" for v in s.reshape(-1))
+                if key_prefix:
+                    # A custom-prefixed key isn't recognized by ASE's extxyz writer, so it
+                    # must already be a plain formatted string rather than a numpy array.
+                    atm.info[f"{key_prefix}stress"] = " ".join(f"{v:.6f}" for v in s.reshape(-1))
+                else:
+                    # ASE's extxyz writer inspects the unprefixed "stress" key itself
+                    # (expects an array, not a string) to detect and expand Voigt notation.
+                    atm.info["stress"] = s.reshape(3, 3)
 
             if "dft_energy" in config:
                 atm.info[f"{key_prefix}energy"] = config["dft_energy"]
