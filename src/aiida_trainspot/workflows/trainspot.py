@@ -331,12 +331,12 @@ class TrainsPotWorkChain(WorkChain):
         spec.expose_inputs(
             DatasetAugmentationWorkChain,
             namespace="dataset_augmentation",
-            exclude=("structures"),
+            exclude=("structures",),
         )
         spec.expose_inputs(
             AbInitioLabellingWorkChain,
             namespace="ab_initio_labelling",
-            exclude=("unlabelled_dataset"),
+            exclude=("unlabelled_dataset",),
             namespace_options={"validator": None},
         )
         spec.expose_inputs(
@@ -386,6 +386,12 @@ class TrainsPotWorkChain(WorkChain):
             valid_type=List,
             help="RMSE on the final dataset computed with the last committee of potentials",
         )
+        spec.output(
+            "explored_dataset",
+            required=False,
+            valid_type=PESData,
+            help="Structures sampled during the last successful MD exploration, if it was performed.",
+        )
 
         spec.exit_code(
             200,
@@ -401,7 +407,7 @@ class TrainsPotWorkChain(WorkChain):
         spec.exit_code(
             308,
             "LESS_THAN_2_POTENTIALS",
-            message="Calculation didn't produce more tha 1 expected potentials.",
+            message="Calculation didn't produce more than 1 expected potentials.",
         )
         spec.exit_code(
             309,
@@ -412,6 +418,31 @@ class TrainsPotWorkChain(WorkChain):
             310,
             "EMPTY_EXPLORATION_DATASET",
             message="The exploration dataset is empty.",
+        )
+        spec.exit_code(
+            320,
+            "ERROR_DATASET_AUGMENTATION_FAILED",
+            message="The dataset augmentation workchain did not finish successfully.",
+        )
+        spec.exit_code(
+            321,
+            "ERROR_AB_INITIO_LABELLING_FAILED",
+            message="The ab initio labelling workchain did not finish successfully.",
+        )
+        spec.exit_code(
+            322,
+            "ERROR_TRAINING_FAILED",
+            message="The training workchain did not finish successfully.",
+        )
+        spec.exit_code(
+            323,
+            "ERROR_EXPLORATION_FAILED",
+            message="The exploration workchain did not finish successfully.",
+        )
+        spec.exit_code(
+            324,
+            "ERROR_COMMITTEE_EVALUATION_FAILED",
+            message="The committee evaluation calculation did not finish successfully.",
         )
 
         spec.outline(
@@ -427,7 +458,7 @@ class TrainsPotWorkChain(WorkChain):
                 ),
                 if_(cls.do_evaluation)(cls.run_committee_evaluation, cls.finalize_committee_evaluation),
             ),
-            cls.finalize,
+            cls._set_outputs,
         )
 
     @classmethod
@@ -570,7 +601,7 @@ class TrainsPotWorkChain(WorkChain):
 
     def do_evaluation(self):
         """Check if committee evaluation should be performed."""
-        return bool("explored_dataset" in self.ctx)
+        return "explored_dataset" in self.ctx
 
     def check_iteration(self):
         """Check if the maximum number of iterations has been reached."""
@@ -680,7 +711,7 @@ class TrainsPotWorkChain(WorkChain):
         inputs.engine = self.inputs.training_engine
         if "potential_checkpoints" in self.ctx:
             inputs["checkpoints"] = {
-                f"chkpt_{ii+1}": self.ctx.potential_checkpoints[-ii]
+                f"chkpt_{ii+1}": self.ctx.potential_checkpoints[-(ii + 1)]
                 for ii in range(
                     min(
                         len(self.ctx.potential_checkpoints),
@@ -753,7 +784,7 @@ class TrainsPotWorkChain(WorkChain):
             **self.ctx.trajectories,
         )["explored_dataset"]
         if len(explored_dataset) == 0:
-            self.finalize()
+            self._set_outputs()
             return self.exit_codes.EMPTY_EXPLORATION_DATASET
         self.ctx.explored_dataset = explored_dataset
 
@@ -772,19 +803,31 @@ class TrainsPotWorkChain(WorkChain):
 
     def finalize_dataset_augmentation(self):
         """Finalize dataset augmentation."""
+        if not self.ctx.dataset_augmentation.is_finished_ok:
+            self.report("DatasetAugmentationWorkChain did not finish successfully.")
+            self._set_outputs()
+            return self.exit_codes.ERROR_DATASET_AUGMENTATION_FAILED
         self.ctx.dataset += self.ctx.dataset_augmentation.outputs.structures.global_structures
         self.ctx.input_lammps_dataset = self.ctx.dataset
 
     def finalize_ab_initio_labelling(self):
         """Finalize ab_initio_labelling calculations."""
+        if not self.ctx.ab_initio_labelling.is_finished_ok:
+            self.report("AbInitioLabellingWorkChain did not finish successfully.")
+            self._set_outputs()
+            return self.exit_codes.ERROR_AB_INITIO_LABELLING_FAILED
         self.ctx.dataset = (
             self.ctx.dataset.get_labelled() + self.ctx.ab_initio_labelling.outputs.ab_initio_labelling_data
         )
-        self.ctx.ab_initio_labelling_calculations = []
 
     def finalize_training(self):
         """Finalize training and collect potentials."""
+        if not self.ctx.training.is_finished_ok:
+            self.report("TrainingWorkChain did not finish successfully.")
+            self._set_outputs()
+            return self.exit_codes.ERROR_TRAINING_FAILED
         if len(self.ctx.training.outputs.training) < 2:  # noqa: PLR2004
+            self._set_outputs()
             return self.exit_codes.LESS_THAN_2_POTENTIALS
 
         self.ctx.potentials_ase = []
@@ -809,7 +852,12 @@ class TrainsPotWorkChain(WorkChain):
 
     def finalize_exploration(self):
         """Finalize exploration and collect trajectories."""
+        if not self.ctx.exploration.is_finished_ok:
+            self.report("ExplorationWorkChain did not finish successfully.")
+            self._set_outputs()
+            return self.exit_codes.ERROR_EXPLORATION_FAILED
         if len(self.ctx.exploration.outputs.md) < 1:
+            self._set_outputs()
             return self.exit_codes.NO_MD_CALCULATIONS
 
         self.ctx.trajectories = {}
@@ -817,11 +865,14 @@ class TrainsPotWorkChain(WorkChain):
             for key, value in calc.items():
                 if key == "trajectories":
                     self.ctx.trajectories[f"exploration_{ii}"] = value
-        self.ctx.exploration = []
 
     def finalize_committee_evaluation(self):
         """Finalize committee evaluation and select structures to label."""
         calc = self.ctx.committee_evaluation
+        if not calc.is_finished_ok:
+            self.report("Committee evaluation calculation did not finish successfully.")
+            self._set_outputs()
+            return self.exit_codes.ERROR_COMMITTEE_EVALUATION_FAILED
         self.ctx.thr_energy, self.ctx.thr_forces, self.ctx.thr_stress = error_calibration(
             calc.outputs.evaluated_datasets.labelled,
             self.inputs.thr_energy,
@@ -836,8 +887,10 @@ class TrainsPotWorkChain(WorkChain):
             self.ctx.max_frames,
         )
         self.ctx.dataset += selected["selected_dataset"]
-        # self.ctx.rmse.append(calc.outputs.rmse)
         self.ctx.rmse.append(calc.outputs.rmse.labelled.get_dict())
+
+        # Superseded by the committee-labelled selection above: no longer useful past this point.
+        del self.ctx.explored_dataset
 
         self.report(
             f"Structures selected for labelling: {len(selected['selected_dataset'])}/"
@@ -856,8 +909,8 @@ class TrainsPotWorkChain(WorkChain):
             f"Max stress deviation: {round(selected['max_stress_deviation'].value,2)} kbar"
         )
 
-    def finalize(self):
-        """Finalize the workchain and set outputs."""
+    def _set_outputs(self):
+        """Set the outputs accumulated so far in the context, whether the run completed or a step failed early."""
         if "rmse" in self.ctx:
             self.out("RMSE", SaveRMSE(self.ctx.rmse))
         self.out("dataset", self.ctx.dataset)
@@ -876,3 +929,5 @@ class TrainsPotWorkChain(WorkChain):
                 "checkpoints",
                 {f"model_{ii+1}": pot for ii, pot in enumerate(self.ctx.potential_checkpoints)},
             )
+        if "explored_dataset" in self.ctx:
+            self.out("explored_dataset", self.ctx.explored_dataset)
