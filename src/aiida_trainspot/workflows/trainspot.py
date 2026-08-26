@@ -6,7 +6,7 @@ import warnings
 from aiida import load_profile
 from aiida.common import AttributeDict
 from aiida.engine import WorkChain, calcfunction, if_, while_
-from aiida.orm import Bool, Dict, Float, FolderData, Int, List, SinglefileData, Str, StructureData
+from aiida.orm import Bool, Dict, Float, FolderData, Int, List, SinglefileData, Str, StructureData, load_node
 from aiida_quantumespresso.workflows.pw.base import PwBaseWorkChain
 from ase import Atoms
 
@@ -16,6 +16,7 @@ from aiida_trainspot.utils.tools import enlarge_vacuum, error_calibration
 from ..calculations.evaluation import EvaluationCalculation
 from ..data.pesdata import PESData
 from ..utils.potential_engines import ENGINES, default_pair_style_for_training_engine, is_pair_style_compatible
+from ..utils.restart import resume_trainspotwc
 from .dataset_augmentation import DatasetAugmentationWorkChain
 from .exploration import DEFAULT_potential_pair_style, ExplorationWorkChain
 from .labelling import AbInitioLabellingWorkChain
@@ -600,6 +601,31 @@ class TrainsPotWorkChain(WorkChain):
         builder.exploration.parameters = Dict({"control": {"timestep": 0.001}})
 
         return builder
+
+    @classmethod
+    def get_builder_resume(cls, identifier, **kwargs):
+        """Return a builder to resume a previous (possibly interrupted) TrainsPotWorkChain.
+
+        Combines `get_builder(...)` with `resume_trainspotwc(...)`: reuses whatever
+        dataset/potentials/checkpoints/explored_dataset the run identified by `identifier`
+        produced before finishing or failing, and skips the corresponding stages accordingly.
+        `abinitiolabelling_code`/`md_code` are taken from the previous run's own inputs if not
+        given explicitly, so a plain `get_builder_resume(<pk>)` works out of the box.
+
+        :param identifier: pk or uuid of the previous TrainsPotWorkChain to resume from.
+        :param kwargs: forwarded to `get_builder()` (codes, protocols, pseudo_family, etc. -- these
+            are fresh deployment configuration for the new run, not part of the resumed state).
+        """
+        previous_node = load_node(identifier)
+        previous_dataset = previous_node.outputs["dataset"]
+
+        if "abinitiolabelling_code" not in kwargs:
+            kwargs["abinitiolabelling_code"] = previous_node.inputs.ab_initio_labelling.quantumespresso.pw.code
+        if "md_code" not in kwargs:
+            kwargs["md_code"] = previous_node.inputs.exploration.md.lammps.code
+
+        builder = cls.get_builder(dataset=previous_dataset, **kwargs)
+        return resume_trainspotwc(builder, identifier)
 
     def do_dataset_augmentation(self):
         """Check if dataset augmentation should be performed."""
