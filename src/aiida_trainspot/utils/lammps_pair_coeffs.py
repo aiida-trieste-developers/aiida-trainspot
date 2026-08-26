@@ -241,33 +241,3 @@ def get_dftd2_pair_coeffs(structure) -> list:
                 f" {r0_12:>7.3f}   # {symbol_1:<2} {symbol_2:<2}"
             )
     return vdw_coeffs
-
-
-def get_mace_pair_coeff(structure, hybrid=False) -> str:
-    """Get the MACE pair coefficient for a given structure.
-
-    Args:
-        structure (StructureData): The structure for which to get the MACE pair coefficient.
-        hybrid (bool): Whether is used hybrid/overlay pair style or not.
-
-    Returns:
-        str: The MACE pair coefficient.
-    """
-    if hybrid:
-        return "* * mace potential.dat " + " ".join(structure.get_symbols_set())
-    return "* * potential.dat " + " ".join(structure.get_symbols_set())
-
-
-def get_meta_pair_coeff(structure, hybrid=False) -> str:
-    """Get the METATrain pair coefficient for a given structure.
-
-    Args:
-        structure (StructureData): The structure for which to get the METATrain pair coefficient.
-        hybrid (bool): Whether is used hybrid/overlay pair style or not.
-
-    Returns:
-        str: The METATrain pair coefficient.
-    """
-    symbols = sorted(structure.get_symbols_set())
-    numbers = [str(atomic_numbers[s]) for s in symbols]
-    return "* * " + " ".join(numbers)

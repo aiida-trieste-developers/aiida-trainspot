@@ -1,0 +1,39 @@
+{
+    "_doc": {
+        "training_engine": "List of TrainsPotWorkChain.training_engine values (MACE/META/NEQUIP) whose postprocess step can produce this pair_style.",
+        "base_pair_style": "LAMMPS pair_style string. Also used, unchanged, as the hybrid/overlay sub-style (with its own args) when combined with the vdw_d2 protocol, and as the key looked up in aiida-lammps' own lammps_potentials.json to find the potential's filename.",
+        "pair_coeff": "Which token recipe (see _PAIR_COEFF_TOKENS in potential_engines.py: filename_symbols / symbols / atomic_numbers) builds the 'pair_coeff * * ...' line. Omit entirely if aiida-lammps' own read_from_file default already handles it.",
+        "style_options": "Optional format string (with a {filename} placeholder) for potential_style_options, the extra text placed on the pair_style line itself. Omit if this pair_style needs none.",
+        "_ordering": "For a training_engine compatible with more than one entry (e.g. mliap), the FIRST matching entry in this file is used as its default -- put an engine's own native format before any extra format it can also export."
+    },
+    "mace": {
+        "training_engine": ["MACE"],
+        "base_pair_style": "mace no_domain_decomposition",
+        "pair_coeff": "filename_symbols"
+    },
+    "metatomic": {
+        "training_engine": ["META"],
+        "base_pair_style": "metatomic",
+        "pair_coeff": "atomic_numbers",
+        "style_options": "{filename}",
+        "_comment": "style_options is just the filename -- LAMMPS syntax is 'pair_style metatomic <file>'."
+    },
+    "nequip": {
+        "training_engine": ["NEQUIP"],
+        "base_pair_style": "nequip",
+        "pair_coeff": "filename_symbols"
+    },
+    "allegro": {
+        "training_engine": ["NEQUIP"],
+        "base_pair_style": "allegro",
+        "pair_coeff": "filename_symbols",
+        "_comment": "Same training_engine as nequip: aiida-trainspot doesn't distinguish an 'ALLEGRO' training_engine, both come from the nequip.base training workflow."
+    },
+    "mliap": {
+        "training_engine": ["MACE", "NEQUIP"],
+        "base_pair_style": "mliap",
+        "pair_coeff": "symbols",
+        "style_options": "unified {filename} 0",
+        "_comment": "An extra export format, not any engine's native one -- listed after mace/nequip/allegro so it's never picked as their default. Unlike the other engines, the potential file is referenced via style_options ('unified <file> 0' on the pair_style line), not in pair_coeff, hence 'symbols' with no filename token there."
+    }
+}

@@ -15,15 +15,19 @@ from aiida_trainspot.utils.tools import enlarge_vacuum, error_calibration
 
 from ..calculations.evaluation import EvaluationCalculation
 from ..data.pesdata import PESData
+from ..utils.potential_engines import ENGINES, default_pair_style_for_training_engine, is_pair_style_compatible
 from .dataset_augmentation import DatasetAugmentationWorkChain
-from .exploration import ExplorationWorkChain
+from .exploration import DEFAULT_potential_pair_style, ExplorationWorkChain
 from .labelling import AbInitioLabellingWorkChain
 from .training import TrainingWorkChain
 
 load_profile()
 
 
-ALLOWED_ENGINES = ["MACE", "META", "NEQUIP"]
+# Every training_engine that can produce at least one pair_style in potential_engines.json.
+ALLOWED_ENGINES = sorted(
+    {training_engine for engine in ENGINES.values() for training_engine in engine["training_engine"]}
+)
 
 
 @calcfunction
@@ -256,6 +260,12 @@ class TrainsPotWorkChain(WorkChain):
         spec.input_namespace(
             "models_lammps", valid_type=SinglefileData, help="Potential for md exploration", required=False
         )
+        spec.input_namespace(
+            "models_lammps_mliap",
+            valid_type=SinglefileData,
+            help="Potential for md exploration with pair_style mliap unified",
+            required=False,
+        )
         spec.input_namespace("models_ase", valid_type=SinglefileData, help="Potential for Evaluation", required=False)
         spec.input(
             "exploration.parameters", valid_type=Dict, help="List of parameters for md exploration", required=False
@@ -375,6 +385,12 @@ class TrainsPotWorkChain(WorkChain):
             help="Last committee of trained potentials compiled for LAMMPS",
         )
         spec.output_namespace(
+            "models_lammps_mliap",
+            required=False,
+            valid_type=SinglefileData,
+            help="Last committee of trained potentials compiled for LAMMPS pair_style mliap unified",
+        )
+        spec.output_namespace(
             "checkpoints",
             required=False,
             valid_type=FolderData,
@@ -443,6 +459,11 @@ class TrainsPotWorkChain(WorkChain):
             324,
             "ERROR_COMMITTEE_EVALUATION_FAILED",
             message="The committee evaluation calculation did not finish successfully.",
+        )
+        spec.exit_code(
+            330,
+            "ERROR_NO_MLIAP_POTENTIAL",
+            message="Exploration requested pair_style mliap but no trained potential produced an mliap-format model.",
         )
 
         spec.outline(
@@ -566,9 +587,6 @@ class TrainsPotWorkChain(WorkChain):
         if md_protocol not in (None, "vdw_d2"):
             raise ValueError(f"MD protocol `{md_protocol}` not supported.")
 
-        if md_protocol == "vdw_d2":
-            builder.exploration.potential_pair_style = Str("hybrid/overlay")
-
         builder.exploration.md.lammps.code = md_code
 
         builder.exploration.params_list = generate_lammps_md_config(
@@ -640,6 +658,7 @@ class TrainsPotWorkChain(WorkChain):
         # --- Potentials ---
         if not self.ctx.do_training:
             self.ctx.potentials_lammps = list(self.inputs.get("models_lammps", {}).values())
+            self.ctx.potentials_lammps_mliap = list(self.inputs.get("models_lammps_mliap", {}).values())
             self.ctx.potentials_ase = list(self.inputs.get("models_ase", {}).values())
             self.ctx.potential_checkpoints = list(self.inputs.get("training", {}).get("checkpoints", {}).values())
 
@@ -728,7 +747,38 @@ class TrainsPotWorkChain(WorkChain):
     def exploration(self):
         """Run exploration."""
         inputs = self.exposed_inputs(ExplorationWorkChain, namespace="exploration")
-        inputs.potential_lammps = self.ctx.potentials_lammps[-1]
+        training_engine = self.inputs.training_engine.value
+        pair_style = (
+            inputs.potential_pair_style.value
+            if "potential_pair_style" in inputs
+            else DEFAULT_potential_pair_style.value
+        )
+
+        # A potential is only usable in the pair_style produced by its training_engine (e.g.
+        # metatrain never exports an mliap-format model). If the user's choice doesn't match,
+        # warn and fall back to that engine's own default rather than failing deep inside LAMMPS.
+        if not is_pair_style_compatible(pair_style, training_engine):
+            default_pair_style = default_pair_style_for_training_engine(training_engine) or (
+                DEFAULT_potential_pair_style.value
+            )
+            self.report(
+                f"`potential_pair_style` = '{pair_style}' is not produced by training_engine "
+                f"'{training_engine}'; using '{default_pair_style}' instead."
+            )
+            pair_style = default_pair_style
+            inputs.potential_pair_style = Str(default_pair_style)
+
+        if "mliap" in pair_style:
+            if not self.ctx.potentials_lammps_mliap:
+                self.report(
+                    "potential_pair_style requests mliap, but no trained potential produced an "
+                    "mliap-format model (check the training engine/postprocess code version)."
+                )
+                self._set_outputs()
+                return self.exit_codes.ERROR_NO_MLIAP_POTENTIAL
+            inputs.potential_lammps = self.ctx.potentials_lammps_mliap[-1]
+        else:
+            inputs.potential_lammps = self.ctx.potentials_lammps[-1]
 
         if "random_input_structures_lammps" in self.inputs:
             if self.inputs.random_input_structures_lammps:
@@ -832,6 +882,7 @@ class TrainsPotWorkChain(WorkChain):
 
         self.ctx.potentials_ase = []
         self.ctx.potentials_lammps = []
+        self.ctx.potentials_lammps_mliap = []
         self.ctx.potential_checkpoints = []
         for _, calc in enumerate(self.ctx.training.outputs.training.values()):
             if "checkpoints" in calc:
@@ -844,6 +895,12 @@ class TrainsPotWorkChain(WorkChain):
                 self.ctx.potentials_lammps.append(calc["model_stage2_lammps"])
             elif "model_stage1_lammps" in calc:
                 self.ctx.potentials_lammps.append(calc["model_stage1_lammps"])
+            if "model_stage2_mliap" in calc:
+                self.ctx.potentials_lammps_mliap.append(calc["model_stage2_mliap"])
+            elif "model_stage1_mliap" in calc:
+                self.ctx.potentials_lammps_mliap.append(calc["model_stage1_mliap"])
+            elif "model_lammps_mliap" in calc:
+                self.ctx.potentials_lammps_mliap.append(calc["model_lammps_mliap"])
             if "model" in calc:
                 self.ctx.potentials_lammps.append(calc["model"])
                 self.ctx.potentials_ase.append(calc["model"])
@@ -923,6 +980,11 @@ class TrainsPotWorkChain(WorkChain):
             self.out(
                 "models_lammps",
                 {f"model_{ii+1}": pot for ii, pot in enumerate(self.ctx.potentials_lammps)},
+            )
+        if self.ctx.get("potentials_lammps_mliap"):
+            self.out(
+                "models_lammps_mliap",
+                {f"model_{ii+1}": pot for ii, pot in enumerate(self.ctx.potentials_lammps_mliap)},
             )
         if "potential_checkpoints" in self.ctx:
             self.out(

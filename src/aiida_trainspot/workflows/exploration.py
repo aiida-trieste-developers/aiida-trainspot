@@ -12,7 +12,8 @@ from aiida_lammps.workflows.base import LammpsBaseWorkChain as LammpsWorkChain
 from aiida_quantumespresso.workflows.protocols.utils import recursive_merge
 
 from ..data.pesdata import PESData
-from ..utils.lammps_pair_coeffs import get_dftd2_pair_coeffs, get_mace_pair_coeff, get_meta_pair_coeff
+from ..utils import potential_engines as pe
+from ..utils.lammps_pair_coeffs import get_dftd2_pair_coeffs
 
 
 def generate_potential(potential, pair_style) -> LammpsPotentialData:
@@ -146,9 +147,13 @@ class ExplorationWorkChain(WorkChain):
             namespace_options={"validator": None},
         )
 
-        spec.inputs.validator = cls.validate_inputs
-
         spec.output_namespace("md", dynamic=True, help="Exploration outputs")
+
+        spec.exit_code(
+            300,
+            "ERROR_ALL_TRAJECTORIES_FAILED",
+            message="All LAMMPS MD trajectories failed.",
+        )
 
         spec.outline(
             cls.run_md,
@@ -162,20 +167,6 @@ class ExplorationWorkChain(WorkChain):
             cls.finalize_md,
         )
 
-    @classmethod
-    def validate_inputs(cls, inputs, _):
-        """Validate the top-level inputs."""
-        protocol = inputs.get("protocol", None)
-        pair_style = inputs.get("potential_pair_style", None)
-
-        if (
-            protocol is not None
-            and protocol.value == "vdw_d2"
-            and pair_style is not None
-            and "metatomic" in pair_style.value
-        ):
-            return "The 'vdw_d2' protocol is not compatible with the 'metatomic' potential pair style."
-
     def run_md(self):  # noqa: PLR0912
         """Run MD simulations for each structure and MD parameter set, with retries on failure."""
         potential = self.inputs.potential_lammps
@@ -188,43 +179,57 @@ class ExplorationWorkChain(WorkChain):
         for structure in self.inputs.lammps_input_structures.get_ase_list():
             inputs = self.exposed_inputs(LammpsWorkChain, namespace="md")
             inputs.lammps.structure = StructureData(ase=structure)
-            inputs.lammps.potential = generate_potential(potential, str(self.inputs.potential_pair_style.value))
 
-            generate_pair_coeff = True
+            base_pair_style = self.inputs.potential_pair_style.value
+            use_vdw_d2 = self.inputs.protocol is not None and self.inputs.protocol.value == "vdw_d2"
+
+            _, engine = pe.match_engine(base_pair_style)
+            if engine is None:
+                raise ValueError(
+                    f"`potential_pair_style` = '{base_pair_style}' does not match any known "
+                    f"engine (known tags: {sorted(pe.ENGINES)}). Add it to "
+                    "`aiida_trainspot/utils/potential_engines.json`."
+                )
+            potential_filename = pe.filename(base_pair_style)
+
+            lammps_pair_style = "hybrid/overlay" if use_vdw_d2 else base_pair_style
+            inputs.lammps.potential = generate_potential(potential, lammps_pair_style)
+
+            generate_pair_coeff = engine.get("pair_coeff") is not None
             if "potential" in self.inputs.parameters:
                 if "pair_coeff_list" in self.inputs.parameters["potential"]:
                     generate_pair_coeff = False
 
-            # Pair coefficients for MACE potential without hybrid/overlay is always generated,
-            # if needed it is overwritten
+            pair_coeffs = None
             if generate_pair_coeff:
-                if "metatomic" in self.inputs.potential_pair_style.value:
-                    pair_coeffs = [get_meta_pair_coeff(inputs.lammps.structure, hybrid=False)]
+                if use_vdw_d2:
+                    # Generate DFT-D2 pair coefficients, plus the hybrid-aware coefficients for
+                    # whichever engine is the base potential.
+                    pair_coeffs = get_dftd2_pair_coeffs(inputs.lammps.structure)
+                    pair_coeffs.append(
+                        pe.pair_coeff(engine, inputs.lammps.structure, hybrid=True, filename=potential_filename)
+                    )
                 else:
-                    pair_coeffs = [get_mace_pair_coeff(inputs.lammps.structure, hybrid=False)]
+                    pair_coeffs = [
+                        pe.pair_coeff(engine, inputs.lammps.structure, hybrid=False, filename=potential_filename)
+                    ]
 
             params_list = self.inputs.params_list.get_list()
             input_parameters = self.inputs.parameters.get_dict()
-            if "metatomic" in self.inputs.potential_pair_style.value:
-                if "potential" in self.inputs.parameters:
-                    if "potential_style_options" not in self.inputs.parameters["potential"]:
-                        input_parameters["potential"]["potential_style_options"] = "potential.dat"
-            if self.inputs.protocol is not None:
-                if self.inputs.protocol == "vdw_d2":
-                    if "potential" in self.inputs.parameters:
-                        if "potential_style_options" not in self.inputs.parameters["potential"]:
-                            input_parameters["potential"]["potential_style_options"] = (
-                                "mace no_domain_decomposition momb 20.0 0.75 20.0"
-                            )
-                    else:
-                        input_parameters["potential"] = {
-                            "potential_style_options": "mace no_domain_decomposition momb 20.0 0.75 20.0"
-                        }
-                    if generate_pair_coeff:
-                        # Generate DFT-D2 pair coefficients, it overwrites the MACE pair_coeff generated above
-                        pair_coeffs = get_dftd2_pair_coeffs(inputs.lammps.structure)
-                        pair_coeffs.append(get_mace_pair_coeff(inputs.lammps.structure, hybrid=True))
-            input_parameters["potential"]["pair_coeff_list"] = pair_coeffs
+            input_parameters.setdefault("potential", {})
+
+            # The engine's own `pair_style` may not reveal which engine actually produced the
+            # potential (e.g. it's "hybrid/overlay" for vdw_d2), so the filename is always passed
+            # through explicitly rather than relying on aiida-lammps deriving it from `pair_style`.
+            input_parameters["potential"].setdefault("potential_filename", potential_filename)
+
+            if "potential_style_options" not in input_parameters["potential"]:
+                options = pe.style_options(engine, potential_filename, hybrid=use_vdw_d2)
+                if options is not None:
+                    input_parameters["potential"]["potential_style_options"] = options
+
+            if pair_coeffs is not None:
+                input_parameters["potential"]["pair_coeff_list"] = pair_coeffs
 
             parameters = recursive_merge(DEFAULT_parameters.get_dict(), input_parameters)
             lammps_inputs = self.inputs.md.lammps
@@ -308,3 +313,7 @@ class ExplorationWorkChain(WorkChain):
                 md_out[f"md_{ii}"] = {el: calc.outputs[el] for el in calc.outputs}
 
         self.out("md", md_out)
+
+        if not md_out:
+            self.report("All LAMMPS MD trajectories failed.")
+            return self.exit_codes.ERROR_ALL_TRAJECTORIES_FAILED
