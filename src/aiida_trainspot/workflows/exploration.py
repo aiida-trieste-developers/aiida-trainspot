@@ -5,15 +5,77 @@ import tempfile
 
 from pathlib import Path
 
-from aiida.engine import WorkChain, append_, while_
-from aiida.orm import Dict, Float, List, SinglefileData, Str, StructureData
+from aiida.engine import WorkChain, append_, calcfunction
+from aiida.orm import Bool, Dict, Float, List, SinglefileData, Str, StructureData
 from aiida_lammps.data.potential import LammpsPotentialData
-from aiida_lammps.workflows.base import LammpsBaseWorkChain as LammpsWorkChain
 from aiida_quantumespresso.workflows.protocols.utils import recursive_merge
 
 from ..data.pesdata import PESData
 from ..utils import potential_engines as pe
 from ..utils.lammps_pair_coeffs import get_dftd2_pair_coeffs
+from ..utils.tools import enlarge_vacuum
+from .lammps_md import LammpsMdWorkChain as LammpsWorkChain
+
+
+@calcfunction
+def LammpsFrameExtraction(
+    sampling_time,
+    saving_frequency,
+    thermalization_time=lambda: Float(0),
+    check_vacuum=lambda: Bool(False),
+    min_vacuum=lambda: Float(5.0),  # noqa B008
+    target_vacuum=lambda: Float(15.0),  # noqa B008
+    **trajectories,
+):
+    """Extract frames from trajectory."""
+    extracted_frames = []
+    for _, trajectory in trajectories.items():
+        try:
+            calculation = next(
+                calc.node
+                for calc in trajectory.base.links.get_incoming().all()
+                if calc.node.process_type == "aiida.calculations:lammps.base"
+            )
+        except StopIteration:
+            # in principle should not happen, but in case skip this trajectory
+            continue
+        params = calculation.inputs.parameters
+        input_structure = calculation.inputs.structure
+
+        timestep = params["control"]["timestep"]
+        integration_style = params["md"]["integration"]["style"].lower()
+        temperature = params["md"]["integration"]["constraints"]["temp"]
+
+        i = int(thermalization_time.value / timestep / saving_frequency.value) if thermalization_time.value > 0 else 1
+
+        while i < trajectory.number_steps:
+            frame = trajectory.get_step_structure(i).get_ase()
+            if check_vacuum:
+                frame = enlarge_vacuum(
+                    frame,
+                    min_vacuum=min_vacuum.value,
+                    target_vacuum=target_vacuum.value,
+                )
+
+            extracted_frames.append(
+                {
+                    "cell": frame.get_cell(),
+                    "symbols": frame.get_chemical_symbols(),
+                    "positions": frame.get_positions(),
+                    "input_structure_uuid": str(input_structure.uuid),
+                    "gen_method": "LAMMPS",
+                    "pbc": frame.get_pbc(),
+                }
+            )
+            extracted_frames[-1]["style"] = integration_style
+            extracted_frames[-1]["temp"] = temperature
+            extracted_frames[-1]["timestep"] = timestep
+            extracted_frames[-1]["id_lammps"] = calculation.uuid
+
+            i = i + int(sampling_time.value / timestep / saving_frequency.value)
+
+    pes_extracted_frames = PESData(extracted_frames)
+    return {"explored_dataset": pes_extracted_frames}
 
 
 def generate_potential(potential, pair_style) -> LammpsPotentialData:
@@ -54,7 +116,11 @@ def generate_potential(potential, pair_style) -> LammpsPotentialData:
 ###################################################################
 
 DEFAULT_potential_pair_style = Str("mace no_domain_decomposition")
-DEFAULT_max_restarts = 3
+DEFAULT_sampling_time = Float(1.0)
+DEFAULT_thermalization_time = Float(0.0)
+DEFAULT_check_vacuum = Bool(True)
+DEFAULT_min_vacuum = Float(5.0)
+DEFAULT_target_vacuum = Float(15.0)
 DEFAULT_settings = Dict(
     {
         "store_restart": True,
@@ -126,7 +192,16 @@ class ExplorationWorkChain(WorkChain):
         spec.input(
             "sampling_time",
             valid_type=Float,
-            help="Correlation time for frame extraction",
+            default=lambda: DEFAULT_sampling_time,
+            required=False,
+            help="Correlation time for frame extraction, and the LAMMPS dump rate for the MD runs",
+        )
+        spec.input(
+            "thermalization_time",
+            valid_type=Float,
+            default=lambda: DEFAULT_thermalization_time,
+            required=False,
+            help="Thermalization time; frames within it are not considered for extraction",
         )
         spec.input(
             "protocol",
@@ -139,6 +214,25 @@ class ExplorationWorkChain(WorkChain):
             valid_type=PESData,
             help="Input structures for lammps",
         )
+        spec.input(
+            "check_vacuum",
+            valid_type=Bool,
+            default=lambda: DEFAULT_check_vacuum,
+            required=False,
+            help="Check vacuum in the extracted frames",
+        )
+        spec.input(
+            "vacuum.min_vacuum",
+            valid_type=Float,
+            required=False,
+            help=f"Minimum vacuum size to consider for enlarging. Default: {DEFAULT_min_vacuum}",
+        )
+        spec.input(
+            "vacuum.target_vacuum",
+            valid_type=Float,
+            required=False,
+            help=f"Target vacuum size after enlarging. Default: {DEFAULT_target_vacuum}",
+        )
 
         spec.expose_inputs(
             LammpsWorkChain,
@@ -147,34 +241,36 @@ class ExplorationWorkChain(WorkChain):
             namespace_options={"validator": None},
         )
 
-        spec.output_namespace("md", dynamic=True, help="Exploration outputs")
+        spec.output(
+            "explored_dataset",
+            valid_type=PESData,
+            help="Structures sampled from the successful MD trajectories.",
+        )
 
         spec.exit_code(
             300,
             "ERROR_ALL_TRAJECTORIES_FAILED",
             message="All LAMMPS MD trajectories failed.",
         )
+        spec.exit_code(
+            301,
+            "EMPTY_EXPLORATION_DATASET",
+            message="No frames were extracted from the successful MD trajectories.",
+        )
 
         spec.outline(
             cls.run_md,
             cls.finalize_md,
-        )
-        spec.outline(
-            cls.run_md,
-            while_(cls.not_converged)(
-                cls.run_restart,
-            ),
-            cls.finalize_md,
+            cls.extract_frames,
         )
 
     def run_md(self):  # noqa: PLR0912
-        """Run MD simulations for each structure and MD parameter set, with retries on failure."""
+        """Run MD simulations for each structure and MD parameter set.
+
+        Each combination is submitted as a `LammpsMdWorkChain`, which retries itself internally on
+        plausibly transient LAMMPS failures - no retry bookkeeping needed here.
+        """
         potential = self.inputs.potential_lammps
-        self.ctx.rerun_wc = []
-        self.ctx.rerun_wc_old = []
-        self.ctx.last_wc = []
-        self.ctx.dict_wc = {}
-        self.ctx.iteration = 0
         # Loop over structures
         for structure in self.inputs.lammps_input_structures.get_ase_list():
             inputs = self.exposed_inputs(LammpsWorkChain, namespace="md")
@@ -265,55 +361,37 @@ class ExplorationWorkChain(WorkChain):
                 inputs.lammps.parameters = Dict(parameters)
                 future = self.submit(LammpsWorkChain, **inputs)
                 self.to_context(md_wc=append_(future))
-                self.ctx.dict_wc[f"{self.ctx.iteration}"] = self.ctx.iteration
-                self.ctx.last_wc.append(self.ctx.iteration)
-                self.ctx.iteration += 1
-
-    def run_restart(self):
-        """Restart the failed MD simulations."""
-        self.ctx.last_wc = []
-        for ii, calc in enumerate(self.ctx.md_wc):
-            if ii in self.ctx.rerun_wc:
-                incoming = calc.base.links.get_incoming().nested()
-
-                # Build the inputs dictionary
-                inputs = self.exposed_inputs(LammpsWorkChain, namespace="md")
-                for key, node in incoming.items():
-                    if key == "lammps":
-                        inputs[key].update(node)  # Merge nested inputs
-
-                future = self.submit(LammpsWorkChain, **inputs)
-                self.to_context(md_wc=append_(future))
-                self.ctx.dict_wc[f"{self.ctx.iteration}"] = self.ctx.dict_wc[f"{ii}"]
-                self.ctx.last_wc.append(self.ctx.iteration)
-                self.ctx.iteration += 1
-
-    def not_converged(self):
-        """Check if any calculation did not end successfully and requires a restart."""
-        # Update the old list of reruns and prepare a new one
-        self.ctx.rerun_wc_old.extend(self.ctx.rerun_wc)
-        self.ctx.rerun_wc = []
-
-        for ii, calc in enumerate(self.ctx.md_wc):
-            if (ii in self.ctx.last_wc) and calc.exit_status != 0:
-                # Count how many times the current calculation has been retried
-                retry_count = sum(1 for value in self.ctx.dict_wc.values() if value == self.ctx.dict_wc[f"{ii}"])
-
-                # Check if the calculation failed and has been retried less than 5 times
-                if retry_count < DEFAULT_max_restarts and (ii not in self.ctx.rerun_wc_old):
-                    self.ctx.rerun_wc.append(ii)
-
-        return len(self.ctx.rerun_wc) > 0
 
     def finalize_md(self):
-        """Collect the results from the completed LAMMPS calculations."""
-        md_out = {}
-        for ii, calc in enumerate(self.ctx.md_wc):
-            if calc.exit_status == 0:
-                md_out[f"md_{ii}"] = {el: calc.outputs[el] for el in calc.outputs}
+        """Collect the trajectories from the completed LAMMPS calculations."""
+        self.ctx.trajectories = {
+            f"exploration_{ii}": calc.outputs.trajectories
+            for ii, calc in enumerate(self.ctx.md_wc)
+            if calc.exit_status == 0 and "trajectories" in calc.outputs
+        }
 
-        self.out("md", md_out)
-
-        if not md_out:
+        if not self.ctx.trajectories:
             self.report("All LAMMPS MD trajectories failed.")
             return self.exit_codes.ERROR_ALL_TRAJECTORIES_FAILED
+
+    def extract_frames(self):
+        """Extract sampled frames from the successful MD trajectories."""
+        timestep = recursive_merge(DEFAULT_parameters.get_dict(), self.inputs.parameters.get_dict())["control"][
+            "timestep"
+        ]
+        dump_rate = int(self.inputs.sampling_time / timestep)
+        vacuum_inputs = self.inputs.get("vacuum", {})
+        explored_dataset = LammpsFrameExtraction(
+            self.inputs.sampling_time,
+            dump_rate,
+            thermalization_time=self.inputs.thermalization_time,
+            check_vacuum=self.inputs.check_vacuum,
+            min_vacuum=vacuum_inputs.get("min_vacuum", DEFAULT_min_vacuum),
+            target_vacuum=vacuum_inputs.get("target_vacuum", DEFAULT_target_vacuum),
+            **self.ctx.trajectories,
+        )["explored_dataset"]
+
+        if len(explored_dataset) == 0:
+            return self.exit_codes.EMPTY_EXPLORATION_DATASET
+
+        self.out("explored_dataset", explored_dataset)

@@ -1,24 +1,27 @@
 """AiiDA WorkChain for active learning of interatomic potentials using LAMMPS and MACE."""
 
 import random
-import warnings
 
 from aiida import load_profile
-from aiida.common import AttributeDict
 from aiida.engine import WorkChain, calcfunction, if_, while_
 from aiida.orm import Bool, Dict, Float, FolderData, Int, List, SinglefileData, Str, StructureData, load_node
 from aiida_quantumespresso.workflows.pw.base import PwBaseWorkChain
 from ase import Atoms
 
 from aiida_trainspot.utils.generate_config import generate_lammps_md_config
-from aiida_trainspot.utils.tools import enlarge_vacuum, error_calibration
+from aiida_trainspot.utils.tools import error_calibration
 
 from ..calculations.evaluation import EvaluationCalculation
 from ..data.pesdata import PESData
 from ..utils.potential_engines import ENGINES, default_pair_style_for_training_engine, is_pair_style_compatible
 from ..utils.restart import resume_trainspotwc
 from .dataset_augmentation import DatasetAugmentationWorkChain
-from .exploration import DEFAULT_potential_pair_style, ExplorationWorkChain
+from .exploration import (
+    DEFAULT_potential_pair_style,
+    DEFAULT_sampling_time,
+    DEFAULT_thermalization_time,
+    ExplorationWorkChain,
+)
 from .labelling import AbInitioLabellingWorkChain
 from .training import TrainingWorkChain
 
@@ -42,67 +45,6 @@ def SaveRMSE(rmse):
     rmse_serializable = [item.get_dict() if isinstance(item, Dict) else item for item in rmse]
 
     return List(list=rmse_serializable)
-
-
-@calcfunction
-def LammpsFrameExtraction(
-    sampling_time,
-    saving_frequency,
-    thermalization_time=lambda: Float(0),
-    check_vacuum=lambda: Bool(False),
-    min_vacuum=lambda: Float(5.0),  # noqa B008
-    target_vacuum=lambda: Float(15.0),  # noqa B008
-    **trajectories,
-):
-    """Extract frames from trajectory."""
-    extracted_frames = []
-    for _, trajectory in trajectories.items():
-        try:
-            calculation = next(
-                calc.node
-                for calc in trajectory.base.links.get_incoming().all()
-                if calc.node.process_type == "aiida.calculations:lammps.base"
-            )
-        except StopIteration:
-            # in principle should not happen, but in case skip this trajectory
-            continue
-        params = calculation.inputs.parameters
-        input_structure = calculation.inputs.structure
-
-        timestep = params["control"]["timestep"]
-        integration_style = params["md"]["integration"]["style"].lower()
-        temperature = params["md"]["integration"]["constraints"]["temp"]
-
-        i = int(thermalization_time.value / timestep / saving_frequency.value) if thermalization_time.value > 0 else 1
-
-        while i < trajectory.number_steps:
-            frame = trajectory.get_step_structure(i).get_ase()
-            if check_vacuum:
-                frame = enlarge_vacuum(
-                    frame,
-                    min_vacuum=min_vacuum.value,
-                    target_vacuum=target_vacuum.value,
-                )
-
-            extracted_frames.append(
-                {
-                    "cell": frame.get_cell(),
-                    "symbols": frame.get_chemical_symbols(),
-                    "positions": frame.get_positions(),
-                    "input_structure_uuid": str(input_structure.uuid),
-                    "gen_method": "LAMMPS",
-                    "pbc": frame.get_pbc(),
-                }
-            )
-            extracted_frames[-1]["style"] = integration_style
-            extracted_frames[-1]["temp"] = temperature
-            extracted_frames[-1]["timestep"] = timestep
-            extracted_frames[-1]["id_lammps"] = calculation.uuid
-
-            i = i + int(sampling_time.value / timestep / saving_frequency.value)
-
-    pes_extracted_frames = PESData(extracted_frames)
-    return {"explored_dataset": pes_extracted_frames}
 
 
 @calcfunction
@@ -165,9 +107,6 @@ DEFAULT_max_selected_frames = Int(1000)
 DEFAULT_random_input_structures_lammps = Bool(True)
 DEFAULT_num_random_structures_lammps = Int(20)
 
-DEFAULT_thermalization_time = Float(0.0)
-DEFAULT_sampling_time = Float(1.0)
-
 DEFAULT_max_loops = Int(10)
 
 DEFAULT_do_dataset_augmentation = Bool(True)
@@ -175,8 +114,6 @@ DEFAULT_do_ab_initio_labelling = Bool(True)
 DEFAULT_training_engine = Str("MACE")
 DEFAULT_do_training = Bool(True)
 DEFAULT_do_exploration = Bool(True)
-
-DEFAULT_check_vacuum = Bool(True)
 ######################################################
 
 
@@ -274,21 +211,6 @@ class TrainsPotWorkChain(WorkChain):
         spec.input("explored_dataset", valid_type=PESData, help="List of structures from exploration", required=False)
 
         spec.input(
-            "frame_extraction.sampling_time",
-            valid_type=Float,
-            help="Correlation time for frame extraction",
-            required=False,
-            default=lambda: DEFAULT_sampling_time,
-        )
-        spec.input(
-            "frame_extraction.thermalization_time",
-            valid_type=Float,
-            default=lambda: DEFAULT_thermalization_time,
-            help="Thermalization time for exploration",
-            required=False,
-        )
-
-        spec.input(
             "thr_energy",
             valid_type=Float,
             help="Threshold for energy",
@@ -317,26 +239,6 @@ class TrainsPotWorkChain(WorkChain):
             default=lambda: DEFAULT_max_selected_frames,
         )
 
-        spec.input(
-            "check_vacuum",
-            valid_type=Bool,
-            default=lambda: DEFAULT_check_vacuum,
-            help="Check vacuum in the explored structures",
-            required=False,
-        )
-        spec.input(
-            "vacuum.min_vacuum",
-            valid_type=Float,
-            help="Minimum vacuum size to consider for enlarging, if not specified NNIP cutoff will be used",
-            required=False,
-        )
-        spec.input(
-            "vacuum.target_vacuum",
-            valid_type=Float,
-            help="Target vacuum size after enlarging, if not specified dataset_augmentation vacuum value will be used",
-            required=False,
-        )
-
         spec.inputs.validator = cls.validate_inputs
 
         spec.expose_inputs(
@@ -359,7 +261,7 @@ class TrainsPotWorkChain(WorkChain):
         spec.expose_inputs(
             ExplorationWorkChain,
             namespace="exploration",
-            exclude=("potential_lammps", "lammps_input_structures", "sampling_time"),
+            exclude=("potential_lammps", "lammps_input_structures"),
             namespace_options={"validator": None},
         )
         spec.expose_inputs(
@@ -427,16 +329,6 @@ class TrainsPotWorkChain(WorkChain):
             message="Calculation didn't produce more than 1 expected potentials.",
         )
         spec.exit_code(
-            309,
-            "NO_MD_CALCULATIONS",
-            message="Calculation didn't produce any MD calculations.",
-        )
-        spec.exit_code(
-            310,
-            "EMPTY_EXPLORATION_DATASET",
-            message="The exploration dataset is empty.",
-        )
-        spec.exit_code(
             320,
             "ERROR_DATASET_AUGMENTATION_FAILED",
             message="The dataset augmentation workchain did not finish successfully.",
@@ -476,7 +368,6 @@ class TrainsPotWorkChain(WorkChain):
                 if_(cls.do_exploration)(
                     cls.exploration,
                     cls.finalize_exploration,
-                    cls.exploration_frame_extraction,
                 ),
                 if_(cls.do_evaluation)(cls.run_committee_evaluation, cls.finalize_committee_evaluation),
             ),
@@ -503,45 +394,16 @@ class TrainsPotWorkChain(WorkChain):
             except Exception:
                 return "Missing `exploration.parameters.control.timestep`."
 
-            frame_extraction = inputs.get("frame_extraction", {})
-            thermalization_time = frame_extraction.get("thermalization_time", DEFAULT_thermalization_time)
-            sampling_time = frame_extraction.get("sampling_time", DEFAULT_sampling_time)
+            thermalization_time = inputs["exploration"].get("thermalization_time", DEFAULT_thermalization_time)
+            sampling_time = inputs["exploration"].get("sampling_time", DEFAULT_sampling_time)
 
             if thermalization_time + sampling_time > min(num_timesteps) * timestep:
                 return (
-                    "The sum of `frame_extraction.thermalization_time` and "
-                    "`frame_extraction.sampling_time` cannot be greater than the "
+                    "The sum of `exploration.thermalization_time` and "
+                    "`exploration.sampling_time` cannot be greater than the "
                     "shortest MD simulation time. "
                     f"({thermalization_time.value} + {sampling_time.value} "
                     f"> {min(num_timesteps) * timestep})."
-                )
-
-        # --- Vacuum validation ---
-        check_vacuum = inputs.get("check_vacuum", Bool(True))
-
-        if check_vacuum:
-            vacuum_inputs = inputs.get("vacuum", {})
-
-            min_vacuum_present = "min_vacuum" in vacuum_inputs
-            target_vacuum_present = "target_vacuum" in vacuum_inputs
-
-            if not min_vacuum_present:
-                # Only warn — do NOT inject defaults here
-                warnings.warn(
-                    "`vacuum.min_vacuum` not specified. Default will be resolved at runtime.",
-                    stacklevel=2,
-                )
-
-            if not target_vacuum_present:
-                if "dataset_augmentation" not in inputs or "vacuum" not in inputs.get("dataset_augmentation", {}):
-                    return (
-                        "The `vacuum.target_vacuum` or `dataset_augmentation.vacuum` "
-                        "input is required when using `check_vacuum`."
-                    )
-
-                warnings.warn(
-                    "`vacuum.target_vacuum` not specified. " "Will fallback to `dataset_augmentation.vacuum`.",
-                    stacklevel=2,
                 )
 
     @classmethod
@@ -699,27 +561,6 @@ class TrainsPotWorkChain(WorkChain):
         else:
             self.ctx.lammps_input_structures = PESData(self.inputs.dataset.get_ase_list())
 
-        # --- Vacuum defaults resolution ---
-        self.ctx.check_vacuum = self.inputs.get("check_vacuum", Bool(True))
-
-        if self.ctx.check_vacuum:
-            vacuum_inputs = self.inputs.get("vacuum", {})
-
-            # Resolve min_vacuum
-            if "min_vacuum" in vacuum_inputs:
-                self.ctx.min_vacuum = vacuum_inputs["min_vacuum"]
-            else:
-                try:
-                    self.ctx.min_vacuum = Float(self.inputs.training.mace.train.mace_config.get_dict()["r_max"])
-                except Exception:
-                    self.ctx.min_vacuum = Float(5.0)
-
-            # Resolve target_vacuum
-            if "target_vacuum" in vacuum_inputs:
-                self.ctx.target_vacuum = vacuum_inputs["target_vacuum"]
-            else:
-                self.ctx.target_vacuum = self.inputs.dataset_augmentation.vacuum
-
         # --- Pseudopotential validation ---
         atomic_species = self.ctx.dataset.get_atomic_species()
         pseudos = self.inputs.ab_initio_labelling.quantumespresso.pw.pseudos
@@ -838,31 +679,23 @@ class TrainsPotWorkChain(WorkChain):
         self.ctx.lammps_input_structures = PESData([self.ctx.lammps_input_structures.get_item(key) for key in selected])
 
         inputs.lammps_input_structures = self.ctx.lammps_input_structures
-        inputs.sampling_time = self.inputs.frame_extraction.sampling_time
+
+        if inputs.get("check_vacuum", True):
+            vacuum_inputs = dict(inputs.get("vacuum", {}))
+            if "min_vacuum" not in vacuum_inputs:
+                try:
+                    vacuum_inputs["min_vacuum"] = Float(self.inputs.training.mace.train.mace_config.get_dict()["r_max"])
+                except Exception:
+                    pass
+            if "target_vacuum" not in vacuum_inputs and "vacuum" in self.inputs.get("dataset_augmentation", {}):
+                vacuum_inputs["target_vacuum"] = self.inputs.dataset_augmentation.vacuum
+            if vacuum_inputs:
+                inputs.vacuum = vacuum_inputs
 
         future = self.submit(ExplorationWorkChain, **inputs)
 
         self.report(f"Launched ExplorationWorkChain with dataset_list <{future.pk}>")
         self.to_context(exploration=future)
-
-    def exploration_frame_extraction(self):
-        """Run exploration frame extraction."""
-        # for _, trajectory in self.ctx.trajectories.items():
-        parameters = AttributeDict(self.inputs.exploration.parameters)
-        dump_rate = int(self.inputs.frame_extraction.sampling_time / parameters.control.timestep)
-        explored_dataset = LammpsFrameExtraction(
-            self.inputs.frame_extraction.sampling_time,
-            dump_rate,
-            thermalization_time=self.inputs.frame_extraction.thermalization_time,
-            check_vacuum=self.ctx.check_vacuum,
-            min_vacuum=self.ctx.min_vacuum,
-            target_vacuum=self.ctx.target_vacuum,
-            **self.ctx.trajectories,
-        )["explored_dataset"]
-        if len(explored_dataset) == 0:
-            self._set_outputs()
-            return self.exit_codes.EMPTY_EXPLORATION_DATASET
-        self.ctx.explored_dataset = explored_dataset
 
     def run_committee_evaluation(self):
         """Run committee evaluation."""
@@ -934,20 +767,12 @@ class TrainsPotWorkChain(WorkChain):
         self.ctx.dataset = self.ctx.training.outputs.global_splitted
 
     def finalize_exploration(self):
-        """Finalize exploration and collect trajectories."""
+        """Finalize exploration and collect the sampled dataset."""
         if not self.ctx.exploration.is_finished_ok:
             self.report("ExplorationWorkChain did not finish successfully.")
             self._set_outputs()
             return self.exit_codes.ERROR_EXPLORATION_FAILED
-        if len(self.ctx.exploration.outputs.md) < 1:
-            self._set_outputs()
-            return self.exit_codes.NO_MD_CALCULATIONS
-
-        self.ctx.trajectories = {}
-        for ii, calc in enumerate(self.ctx.exploration.outputs.md.values()):
-            for key, value in calc.items():
-                if key == "trajectories":
-                    self.ctx.trajectories[f"exploration_{ii}"] = value
+        self.ctx.explored_dataset = self.ctx.exploration.outputs.explored_dataset
 
     def finalize_committee_evaluation(self):
         """Finalize committee evaluation and select structures to label."""

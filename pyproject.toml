@@ -40,6 +40,7 @@ Source = "https://github.com/aiida-trieste-developers/aiida-trains-pot"
 "trainspot.labelling"        = "aiida_trainspot.workflows.labelling:AbInitioLabellingWorkChain"
 "trainspot.training"         = "aiida_trainspot.workflows.training:TrainingWorkChain"
 "trainspot.exploration"      = "aiida_trainspot.workflows.exploration:ExplorationWorkChain"
+"trainspot.lammps_md"        = "aiida_trainspot.workflows.lammps_md:LammpsMdWorkChain"
 "trainspot.workflow"         = "aiida_trainspot.workflows.trainspot_workflow:TrainsPotWorkChain"
 
 
