@@ -77,7 +77,16 @@ templates_path = ["_templates"]
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = "en"
+# Read the Docs sets this for a translation project; locally, pass -D language=fur.
+language = os.environ.get("READTHEDOCS_LANGUAGE", "en")
+
+# One catalogue per source file, under docs/source/locale/<lang>/LC_MESSAGES/.
+locale_dirs = ["locale/"]
+gettext_compact = False
+
+# Languages the switcher offers. English is the source text and has no catalogue;
+# every other entry needs one under locale/<code>/LC_MESSAGES/.
+doc_languages = {"en": ("EN", "English"), "fur": ("FUR", "Furlan")}
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -89,8 +98,16 @@ exclude_patterns = []
 # a list of builtin themes.
 html_theme = "sphinx_book_theme"
 html_static_path = ["_static"]
-html_css_files = ["aiida-custom.css", "aiida-qe-custom.css"]
+html_css_files = ["aiida-custom.css"]
+html_js_files = ["al-anim.js"]
 html_theme_options = {
+    # The mark's white detail sits on top of its own coloured discs, so it reads on either
+    # background; only the wordmark needs a light and a dark cut.
+    "logo": {
+        "image_light": "_static/lockup_light.svg",
+        "image_dark": "_static/lockup_dark.svg",
+        "alt_text": "AiiDA-TrainsPot",
+    },
     "home_page_in_toc": True,
     "repository_url": "https://github.com/aiida-trieste-developers/aiida-trains-pot",
     "repository_branch": "main",
@@ -100,8 +117,27 @@ html_theme_options = {
     "path_to_docs": "docs",
     "use_edit_page_button": True,
 }
+# The theme's own sidebar list, with the tagline slipped in right under the logo.
+html_sidebars = {
+    "**": [
+        "navbar-logo.html",
+        "tagline.html",
+        "language-switcher.html",
+        "icon-links.html",
+        "search-button-field.html",
+        "sbt-sidebar-nav.html",
+    ]
+}
+html_context = {
+    # Read by _templates/language-switcher.html. On Read the Docs the languages
+    # are sibling paths under /<lang>/<version>/; in a local build the English
+    # site is the root and each translation a subdirectory of it.
+    "doc_languages": doc_languages,
+    "on_rtd": os.environ.get("READTHEDOCS") == "True",
+    "rtd_version": os.environ.get("READTHEDOCS_VERSION", "latest"),
+}
 html_domain_indices = True
-html_logo = "_static/logo.png"
+html_favicon = "_static/logomark.svg"
 html_show_sourcelink = False
 
 # If true, an OpenSearch description file will be output, and all pages will

@@ -1,226 +1,163 @@
 .. _get-started:
 
-==================================
-Get Started with aiida-trains-pot
-==================================
+===========
+Get started
+===========
 
-Welcome to `aiida-trains-pot <https://github.com/aiida-trieste-developers/aiida-trains-pot>`_! This guide will walk you through setting up and running the graphene example located in `examples/graphene <https://github.com/aiida-trieste-developers/aiida-trains-pot/tree/main/examples/graphene>`_ on GitHub.
+This page runs a first, small active-learning loop on graphene. Starting from a single graphene
+cell, the workflow builds a larger set of structures by rattling, straining and cutting it, and
+computes their energies, forces and stresses with Quantum ESPRESSO. It then trains a committee of
+MACE potentials on these labelled structures and uses them to run short molecular dynamics (MD)
+simulations with LAMMPS. Where the members of the committee disagree on a frame of those
+trajectories, the potentials are unreliable, so those frames are labelled with Quantum ESPRESSO,
+added to the training set, and the cycle starts again. The aim of this run is not a useful potential
+but a check that the installation, the codes and the scheduler settings work together, and a first
+look at how the workflow is driven.
 
-Prerequisites
--------------
+The whole run is one Python script, `examples/graphene/get_started.py
+<https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/get_started.py>`_,
+which reads ``gr8x8.xyz`` and ``mace_config.yml`` from its own directory. After filling in the
+placeholders marked ``<...>`` and the cluster settings it runs as is. The sections below go through
+it in order.
 
-To use `aiida-trains-pot <https://github.com/aiida-trieste-developers/aiida-trains-pot>`_, ensure you have the following prerequisites installed:
+You need :ref:`AiiDA-TrainsPot installed <installation>`, an AiiDA profile with the daemon running,
+and a registered code for each of Quantum ESPRESSO (``pw.x``), LAMMPS, MACE training, MACE
+post-processing and committee evaluation, as described in the installation page.
 
-- `AiiDA <https://aiida.net>`_
-- `QuantumESPRESSO <https://www.quantum-espresso.org>`_, `MACE <https://github.com/ACEsuit/mace>`_, and `LAMMPS <https://mace-docs.readthedocs.io/en/latest/guide/lammps.html>`_ codes installed on your computing environment and configured in AiiDA
-- Access to a GPU-enabled HPC cluster with SLURM support (e.g., Leonardo cluster at CINECA)
+Codes and cluster settings
+==========================
 
-**Note**: The example in this guide uses QuantumESPRESSO, MACE, and LAMMPS workflows configured with the appropriate GPU parameters.
+AiiDA stores everything it knows (codes, computers, calculations, results) in a database selected by
+a *profile*, so the script starts by loading it. Each executable you registered is an AiiDA *code*,
+identified by a label of the form ``<code>@<computer>``, where the *computer* is the remote machine
+it runs on. The labels below are placeholders for your own. The committee evaluation code is a
+``PortableCode``: its files are stored in AiiDA and uploaded with each calculation, so it is not
+tied to a computer and has to be given one explicitly later.
 
-Step 1: Setup the Environment
------------------------------
+.. literalinclude:: ../../../../examples/graphene/get_started.py
+   :language: python
+   :start-after: # --- profile and codes ---
+   :end-before: # --- scheduler settings ---
 
-Before starting, ensure you load your AiiDA profile and import necessary dependencies. In this example, the graphene structure `gr8x8.xyz <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/gr8x8.xyz>`_ and required configuration files are located in the `examples/graphene <https://github.com/aiida-trieste-developers/aiida-trains-pot/tree/main/examples/graphene>`_ directory.
+Every calculation is then submitted to the cluster's scheduler, which will refuse a job without an
+account, a partition, a quality of service (QoS), and, on a GPU machine, a GPU request, and which
+needs a wall time and a memory limit. In AiiDA these are the ``metadata.options`` of each
+calculation. They are the same for every code here, so the script defines them once and applies them
+with a small function. The values are those of Leonardo (Booster) at CINECA and have to be replaced
+with the ones of your cluster; :ref:`production-scheduler` explains them further.
 
-.. code-block:: python
+.. literalinclude:: ../../../../examples/graphene/get_started.py
+   :language: python
+   :start-after: # --- scheduler settings ---
+   :end-before: # --- dataset ---
 
-    from aiida.orm import load_code, load_computer, Str, Dict, List, Int, Bool, Float
-    from aiida import load_profile
-    from aiida.engine import submit
-    from aiida.plugins import WorkflowFactory, DataFactory
-    from ase.io import read
-    import yaml
-    import os
-    from aiida_trains_pot.utils.restart import models_from_trainingwc,  models_from_aiidatrainspotwc
-    from aiida_trains_pot.utils.generate_config import generate_lammps_md_config
+Dataset and builder
+===================
 
-    load_profile()
+The starting point is a ``PESData`` node, the dataset type of the workflow. It is created from a
+list of ASE structures, here the one read from ``gr8x8.xyz``.
 
-Step 2: Define and Load the Codes
----------------------------------
+.. literalinclude:: ../../../../examples/graphene/get_started.py
+   :language: python
+   :start-after: # --- dataset ---
+   :end-before: # --- builder ---
 
-In this example, we use Quantum ESPRESSO (QE), MACE, LAMMPS, and committee evaluation codes. Make sure these are installed and available as AiiDA codes. Examples of configuration YAML files can be found in `examples/setup_codes <https://github.com/aiida-trieste-developers/aiida-trains-pot/tree/main/examples/setup_codes>`_:
+AiiDA workflows are configured through a *builder*, an object whose attributes are the inputs of the
+workflow, organised in namespaces. ``TrainsPotWorkChain.get_builder()`` returns one with the ab
+initio labelling and the exploration already filled in: the Quantum ESPRESSO inputs come from the
+protocol (``fast`` here) and the pseudopotential family, and a default MD run is set. Training and
+committee evaluation are left to the user. ``demo=True`` sets small, reasonable values for a test
+run; the details are in :ref:`loop-stages`. ``max_loops`` is the maximum number of iterations of
+the loop.
 
-.. code-block:: python
+.. literalinclude:: ../../../../examples/graphene/get_started.py
+   :language: python
+   :start-after: # --- builder ---
+   :end-before: # --- training ---
 
-    QE_code                 = load_code('qe7.2-pw@leo1_scratch_bind')
-    MACE_train_code         = load_code('mace_train@leo1_scratch_mace')
-    MACE_preprocess_code    = load_code('mace_preprocess@leo1_scratch_mace')
-    MACE_postprocess_code   = load_code('mace_postprocess@leo1_scratch_mace')
-    LAMMPS_code             = load_code('lmp4mace@leo1_scratch')
-    EVALUATION_code         = load_code('committee_evaluation_portable')
+Training and scheduler settings
+===============================
 
-Step 3: Set Machine Parameters
-------------------------------
+The default training engine is MACE. It needs its configuration, a dictionary read here from
+``mace_config.yml``, and two codes: the one that trains and the one that converts the trained model
+for use in LAMMPS. The ``prepend_text`` option adds lines to the job script before the executable
+runs; the one used here, taken from ``examples/graphene/run_atp.py``, makes the training run through
+``srun``. By default two potentials are trained, which form the committee.
 
-Customize machine parameters for each code (time, nodes, GPUs, memory, etc.). Here’s an example for configuring Quantum ESPRESSO:
+.. literalinclude:: ../../../../examples/graphene/get_started.py
+   :language: python
+   :start-after: # --- training ---
+   :end-before: # --- scheduler per code ---
 
-.. code-block:: python
+Each calculation that runs on the cluster has its own ``metadata.options``, reached through the
+corresponding namespace of the builder. To keep this first script short, the same settings are
+applied to all of them, Quantum ESPRESSO (run under MPI, hence ``withmpi``), MACE training and
+LAMMPS, changing only wall time and memory; in a real run each code can get its own partition,
+resources or GPU request.
 
-    QE_machine = {
-        'time': "00:05:00",
-        'nodes': 1,
-        'gpu': "1",
-        'taskpn': 1,
-        'cpupt': "8",
-        'mem': "70GB",
-        'account': "***",
-        'partition': "boost_usr_prod",
-        'qos': "boost_qos_dbg"
-    }
+.. literalinclude:: ../../../../examples/graphene/get_started.py
+   :language: python
+   :start-after: # --- scheduler per code ---
+   :end-before: # --- committee evaluation ---
 
-Repeat this process for each code (MACE, LAMMPS and committee evaluation), adapting the parameters as needed.
+Committee evaluation
+====================
 
-Step 4: Load the Graphene Structure
------------------------------------
+After each exploration, the committee evaluation runs all the potentials on the sampled frames and
+measures how much they disagree. As it is a ``PortableCode``, it needs the computer it will run on,
+besides the same scheduler settings.
 
-Load the graphene structure `gr8x8.xyz <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/gr8x8.xyz>`_:
+.. literalinclude:: ../../../../examples/graphene/get_started.py
+   :language: python
+   :start-after: # --- committee evaluation ---
+   :end-before: # --- submit ---
 
-.. code-block:: python
+Submit and launch
+=================
 
-    input_structures = PESData([read(os.path.join(script_dir, 'gr8x8.xyz'))])
+Submitting hands the workflow to the AiiDA daemon, a background process that runs the workflow and
+talks to the cluster, so the script returns immediately and the run continues without it.
 
-Step 5: Setup the TrainsPot Workflow
-------------------------------------
+.. literalinclude:: ../../../../examples/graphene/get_started.py
+   :language: python
+   :start-after: # --- submit ---
 
-The `TrainsPot` workflow combines several tasks. Use `get_builder()` to get the workflow's builder and give the input structures.
+The script is launched with ``verdi run get_started.py``, which loads the profile and runs it.
+Plain ``python get_started.py`` works as well, because the script calls ``load_profile()``. In both
+cases the daemon has to be running (``verdi daemon status``).
 
-**Note**: Passing pseudopotentials pay attention to give one per each atomic species present in the dataset. Hence in getting the pseudos from SSSP library you should pass to the `get_pseudos` method a structure containing all the atomic species present in the dataset.
+Following the run
+=================
 
+The workflow and every calculation it spawns are AiiDA processes, which can be inspected from the
+command line using the PK printed by the script.
 
-.. code-block:: python
+.. code-block:: bash
 
-    builder = TrainsPot.get_builder(
-                abinitiolabeling_code     = QE_code,
-                abinitiolabeling_protocol = 'stringent',
-                pseudo_family             = 'SSSP/1.3/PBE/precision',
-                md_code                   = LAMMPS_code,
-                md_protocol               = 'vdw_d2',
-                dataset                   = input_structures,
-            )
+    verdi process list -a -p1       # recent processes and their state
+    verdi process status <pk>       # tree of sub-workchains and calculations
+    verdi process report <pk>       # log of the workflow
 
-The workflow has several steps, each of them can be enabled or disabled by setting the corresponding flags. Can be also specified a maximum number of active learning loops, threshold of energy, force and stress and maximum selected frames to label:
+``status`` shows which stage the run is in, and ``report`` lists, for each loop, how many frames
+were selected for labelling.
 
-.. code-block:: python
+Results
+=======
 
-    builder.do_dataset_augmentation = Bool(True)
-    builder.do_ab_initio_labelling  = Bool(True)
-    builder.do_training             = Bool(True)
-    builder.do_exploration          = Bool(True)
-    builder.max_loops               = Int(1)
-
-    builder.thr_energy              = Float(2e-3)
-    builder.thr_forces              = Float(5e-2)
-    builder.thr_stress              = Float(1e-2)
-    builder.max_selected_frames     = Int(1000)
-
-
-Step 6: Configure Dataset Augmentation
---------------------------------------
-
-Data augmentation starts from few input configuration (just one graphene structure in this example) and increases the size of the dataset generating new configurations. The augmented dataset con contain the input structures, isolated atoms (one per each atomic species present in the input structures), and distorted configurations.
-Various parameters for data augmentation can be adjusted:
-
-.. code-block:: python
-
-    builder.dataset_augmentation.do_rattle_strain_defects           = Bool(True)
-    builder.dataset_augmentation.do_input                           = Bool(True)
-    builder.dataset_augmentation.do_isolated                        = Bool(True)
-    builder.dataset_augmentation.do_clusters                        = Bool(True)
-    builder.dataset_augmentation.do_slabs                           = Bool(True)
-    builder.dataset_augmentation.do_replication                     = Bool(True)
-    builder.dataset_augmentation.do_check_vacuum                    = Bool(True)
-    builder.dataset_augmentation.do_substitution                    = Bool(True)
-
-    builder.dataset_augmentation.rsd.params.rattle_fraction         = Float(0.6)
-    builder.dataset_augmentation.rsd.params.max_sigma_strain        = Float(0.3)
-    builder.dataset_augmentation.rsd.params.n_configs               = Int(80)
-    builder.dataset_augmentation.rsd.params.frac_vacancies          = Float(0.2)
-    builder.dataset_augmentation.rsd.params.vacancies_per_config    = Int(1)
-    builder.dataset_augmentation.clusters.n_clusters                = Int(80)
-    builder.dataset_augmentation.clusters.max_atoms                 = Int(30)
-    builder.dataset_augmentation.clusters.interatomic_distance      = Float(1.5)
-    builder.dataset_augmentation.slabs.miller_indices               = List([[1, 0, 0], [1, 1, 0], [1, 1, 1], [0, 0, 1], [0, 1, 1], [0, 1, 0], [1, 0, 1]])
-    builder.dataset_augmentation.slabs.min_thickness                = Float(10)
-    builder.dataset_augmentation.slabs.max_atoms                    = Int(600)
-    builder.dataset_augmentation.replicate.min_dist                 = Float(24)
-    builder.dataset_augmentation.replicate.max_atoms                = Int(600)
-    builder.dataset_augmentation.vacuum                             = Float(15)
-    builder.dataset_augmentation.substitution.switches_fraction     = Float(0.2)
-    builder.dataset_augmentation.substitution.structures_fraction   = Float(0.1)
-
-
-Step 7: Configure Ab Initio Labelling (Quantum ESPRESSO)
---------------------------------------------------------
-
-PW parameters are already populated once defining the builder according to pseudo_family and protocol
-
-
-Step 8: Configure MACE and LAMMPS for Training and Exploration
---------------------------------------------------------------
-
-MACE parameters can be written in a yaml file as in `mace_config.yml <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/mace_config.yml>`_ Additonal information about the MACE parameters can be found in the `MACE documentation <https://mace-docs.readthedocs.io/en/latest/guide/training.html>`_.
-
-**Note**: In latest release of MACE (v0.3.8) the training can fail if using multiple GPUs and the training stops earlier following `patience` criteria. To avoid this issue, when using multiple GPUs, set `patience` parameter to a large value (e.g., 1000).
-
-Here we load the MACE configuration file, preprocess and posprocess codes, set the number of potentials in the committee:
+Once at least one committee evaluation has finished, the results can be plotted from a Python
+session or a notebook. ``plot_parity`` compares the predicted energies, forces and stresses with the
+Quantum ESPRESSO values for each loop, and shows how the errors evolve from one loop to the next.
 
 .. code-block:: python
 
-    MACE_config                                   = os.path.join(script_dir, 'mace_config.yml')
-    with open(MACE_config, 'r') as yaml_file:
-        mace_config = yaml.safe_load(yaml_file)
-    builder.training.mace.train.mace_config       = Dict(mace_config)
+    from aiida.orm import load_node
+    from aiida_trainspot.utils.plotting import plot_parity
 
-    builder.training.mace.train.code              = MACE_train_code
-    builder.training.mace.train.preprocess_code   = MACE_preprocess_code
-    builder.training.mace.train.postprocess_code  = MACE_postprocess_code
-    builder.training.mace.train.do_preprocess     = Bool(True)
+    plot_parity(load_node(1234))  # pk of the TrainsPotWorkChain
 
+Next
+====
 
-    builder.training.num_potentials = Int(3)
-
-As for MACE, also for LAMMPS, simulation parameters can be loaded from file, i.e. `lammps_md_params.yml <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/lammps_md_params.yml>`_. The additonal information about the LAMMPS parameters can be found in the `LAMMPS documentation <https://aiida-lammps.readthedocs.io/en/latest/topics/data/parameters.html>`_:
-
-.. code-block:: python
-
-    lammps_params_yaml = os.path.join(script_dir, 'lammps_md_params.yml')
-    with open(lammps_params_yaml, 'r') as yaml_file:
-        lammps_params_list = yaml.safe_load(yaml_file)
-    builder.exploration.params_list = List(lammps_params_list)
-
-Otherwise `generate_lammps_md_config` can be used to generate simple LAMMPS parameter either for NVT or NPT simulations:
-
-.. code-block:: python
-
-    temperatures                     = [30, 35, 40, 45]
-    pressures                        = [0]
-    steps                            = [500]
-    styles                           = ["npt"]
-    timestep                         = 0.001
-    builder.exploration.params_list  = generate_lammps_md_config(temperatures, pressures, steps, styles, timestep)
-    builder.exploration.parameters   = Dict({'control':{'timestep': timestep,},})
-
-
-Step 9: Setup Committee Evaluation
-----------------------------------
-
-Since committee evaluation uses a portable code, the computer should be explicitly set:
-
-.. code-block:: python
-
-    builder.committee_evaluation.code = EVALUATION_code
-    builder.committee_evaluation.metadata.computer = load_computer('leo1_scratch')
-
-Step 10: Submit the Workflow
-----------------------------
-
-Once everything is set up, submit the workflow:
-
-.. code-block:: python
-
-    calc = submit(builder)
-
----
-
-This guide should help you get started with `aiida-trains-pot <https://github.com/aiida-trieste-developers/aiida-trains-pot>`_! For more information on AiiDA workflows, check the AiiDA documentation.
+:doc:`../loop_stages` describes what each stage does and which settings are worth changing.
+:doc:`../production_runs` covers cluster settings, the choice of training engine, longer runs,
+resuming and further plots.

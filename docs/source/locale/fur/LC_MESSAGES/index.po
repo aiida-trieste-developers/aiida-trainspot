@@ -1,0 +1,142 @@
+# Friulian translation of the AiiDA-TrainsPot documentation.
+msgid ""
+msgstr ""
+"Project-Id-Version: AiiDA-TrainsPot\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fur\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+
+#: ../../source/index.rst:4
+msgid "AiiDA-TrainsPot"
+msgstr ""
+
+#: ../../source/index.rst:6
+msgid "AiiDA-TrainsPot is an AiiDA workflow that fully automates the training of a machine-learned interatomic potential. It implements an active learning loop that, starting from a handful of structures, augments, labels via DFT, trains, explores via classical MD and selects -- based on committee consensus -- iterating until the committee of potentials no longer disagrees anywhere."
+msgstr "AiiDA-TrainsPot al è un flus di lavôr AiiDA che al automatize dal dut l'adestrament di un potenziâl interatomic basât sul aprendiment automatic. Al implemente un cicli di aprendiment atîf che, partint di un numar limitât di struturis, al aumente, al etichete cun la DFT, al adestre, al esplore cun dinamiche molecolâr classiche e al selezione -- in base al consens dal comitât -- ripetint fin che il comitât dai potenziâi nol è plui in disacuardi in nissun pont."
+
+#: ../../source/index.rst:14
+msgid "**Fully automated.** The loop runs from a small set of starting structures to a trained potential and its dataset without human intervention."
+msgstr "**Dal dut automatic.** Il cicli al va di un piçul grup di struturis iniziâls fint a un potenziâl adestrât e al so dataset, cence intervent uman."
+
+#: ../../source/index.rst:17
+msgid "**One protocol, one dataset.** Every label comes from the same `aiida-quantumespresso`_ protocol, so pseudopotentials, cutoffs and k-point sampling do not drift across the training set. The level is yours to choose (``fast``, ``balanced``, ``stringent``); the consistency is not."
+msgstr "**Un protocol, un dataset.** Ogni etichete e ven dal stes protocol `aiida-quantumespresso`_, cussì che pseudopotenziâi, cutoff e campionament dai ponts k no cambiin dentri dal insiemi di adestrament. Il nivel tu lu sielzis tu (``fast``, ``balanced``, ``stringent``); la coerence no."
+
+#: ../../source/index.rst:21
+msgid "**Committee disagreement selects the data.** A configuration is labelled when the committee of potentials disagrees about it, so the ab initio budget is spent where the model is actually weak rather than on a fixed schedule."
+msgstr "**Il disacuardi dal comitât al sielç i dâts.** Une configurazion e ven etichetade cuant che il comitât dai potenziâi nol è dacuardi su di jê, cussì che il budget ab initio al ven doprât là che il model al è pardabon debil, e no daûr di une tabele fisse."
+
+#: ../../source/index.rst:25
+msgid "**Reproducible by construction.** Every structure, calculation and model is a node in the AiiDA_ provenance graph, so a run can be inspected, resumed and repeated."
+msgstr "**Riproducibil par costruzion.** Ogni struture, calcul e model al è un grop tal graf di provenience di AiiDA_, cussì che une esecuzion e pues jessi controlade, ripiade e ripetude."
+
+#: ../../source/index.rst:29
+msgid "Get started"
+msgstr "Par scomençâ"
+
+#: ../../source/index.rst:31
+msgid "From nothing to a first run"
+msgstr "Di zero ae prime esecuzion"
+
+#: ../../source/index.rst:34
+msgid ":ref:`Install <installation>` AiiDA-TrainsPot on your machine, and the codes it drives (Quantum ESPRESSO, LAMMPS, a training engine) on the machine that will run them."
+msgstr ":ref:`Instale <installation>` AiiDA-TrainsPot te tô machine, e i codiçs che al comande (Quantum ESPRESSO, LAMMPS, un motôr di adestrament) te machine che ju eseguirà."
+
+#: ../../source/index.rst:36
+msgid "Set up an AiiDA ``Code`` for each of them, and the committee evaluation ``PortableCode``."
+msgstr "Configure un ``Code`` AiiDA par ognidun di lôr, e il ``PortableCode`` pe valutazion dal comitât."
+
+#: ../../source/index.rst:37
+msgid "Follow the :ref:`worked example <get-started>` and launch your first loop."
+msgstr "Va daûr dal :ref:`esempli svolzût <get-started>` e fâs partî il to prin cicli."
+
+#: ../../source/index.rst:47
+msgid "Citing AiiDA-TrainsPot"
+msgstr "Citâ AiiDA-TrainsPot"
+
+#: ../../source/index.rst:49
+msgid "If you use AiiDA-TrainsPot in your work, please cite:"
+msgstr "Se tu dopris AiiDA-TrainsPot tal to lavôr, par plasê cite:"
+
+#: ../../source/index.rst:51
+msgid "D. Bidoggia, N. Manko, M. Peressi and A. Marrazzo, *AiiDA-TrainsPot: towards automated training of neural-network interatomic potentials*, Digital Discovery, 2026, **5**, 2292-2309. |AiiDA-TrainsPot paper|_"
+msgstr ""
+
+#: ../../source/index.rst:70
+msgid "Built with, and supported by"
+msgstr "Costruît cun, e supuartât di"
+
+#: ../../source/index.rst:72
+msgid "AiiDA-TrainsPot is built on AiiDA, Quantum ESPRESSO, LAMMPS, MACE, and metatrain:"
+msgstr "AiiDA-TrainsPot al è costruît sore AiiDA, Quantum ESPRESSO, LAMMPS, MACE e metatrain:"
+
+#: ../../source/index.rst:76
+msgid "|aiida_logo| |qe_logo| |lammps_logo| |MACE_logo| |metatrain_logo|"
+msgstr ""
+
+#: ../../source/index.rst:78
+msgid "AiiDA"
+msgstr ""
+
+#: ../../source/index.rst:82
+msgid "Quantum ESPRESSO"
+msgstr ""
+
+#: ../../source/index.rst:86
+msgid "LAMMPS"
+msgstr ""
+
+#: ../../source/index.rst:90
+msgid "MACE"
+msgstr ""
+
+#: ../../source/index.rst:94
+msgid "metatrain"
+msgstr ""
+
+#: ../../source/index.rst:98
+msgid "This project was supported by:"
+msgstr "Chest progjet al è stât supuartât di:"
+
+#: ../../source/index.rst:102
+msgid "|trieste_logo| |sissa_logo| |max_logo| |icsc_logo|"
+msgstr ""
+
+#: ../../source/index.rst:104
+msgid "Università degli Studi di Trieste"
+msgstr ""
+
+#: ../../source/index.rst:108
+msgid "SISSA"
+msgstr ""
+
+#: ../../source/index.rst:112
+msgid "MaX Centre of Excellence"
+msgstr ""
+
+#: ../../source/index.rst:116
+msgid "Centro Nazionale di Ricerca HPC, Big Data e Quantum Computing"
+msgstr ""
+
+#: ../../source/index.rst:120
+msgid "|Università degli Studi di Trieste|_."
+msgstr ""
+
+#: ../../source/index.rst:121
+msgid "|Scuola Internazionale Superiore di Studi Avanzati|_."
+msgstr ""
+
+#: ../../source/index.rst:122
+msgid "|Centro Nazionale di Ricerca HPC, Big Data e Quantum Computing|_."
+msgstr ""
+
+#: ../../source/index.rst:123
+msgid "|EU Centre of Excellence \"MaX – Materials Design at the Exascale\"|_."
+msgstr ""
+
+#: ../../source/index.rst:125
+msgid "Contributions are welcome: see CONTRIBUTING.md_ and the CLA.md_."
+msgstr "I contribûts a son benvignûts: cjale CONTRIBUTING.md_ e il CLA.md_."

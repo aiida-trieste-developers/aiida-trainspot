@@ -1,0 +1,270 @@
+# Friulian translation of the AiiDA-TrainsPot documentation.
+msgid ""
+msgstr ""
+"Project-Id-Version: AiiDA-TrainsPot\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fur\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+
+#: ../../source/user_guide/production_runs.rst:5
+msgid "Production runs"
+msgstr "Esecuzions di produzion"
+
+#: ../../source/user_guide/production_runs.rst:7
+msgid "The trial run in :ref:`get-started` checks that everything works. A production run asks more of the setup: the scheduler settings have to fit the real cost of each calculation, the training engine has to be chosen together with the way LAMMPS will use its potentials, the stages are larger, and the run often has to be continued over several submissions. This page goes through these points and ends with how to inspect the results."
+msgstr "La esecuzion di prove in :ref:`get-started` e verifiche che dut al funzioni. Une esecuzion di produzion e domande di plui ae configurazion: lis impostazions dal scheduler a àn di adatâsi al cost reâl di ogni calcul, il motôr di adestrament al à di jessi sielt adun cul mût che LAMMPS al doprarà i siei potenziâi, lis fasis a son plui grandis, e dispès la esecuzion e à di jessi continuade in plui riprês. Cheste pagjine e passe chescj ponts e e finìs mostrant cemût controlâ i risultâts."
+
+#: ../../source/user_guide/production_runs.rst:16
+msgid "Cluster and scheduler settings"
+msgstr "Impostazions dal cluster e dal scheduler"
+
+#: ../../source/user_guide/production_runs.rst:18
+msgid "Every calculation of the workflow is submitted to the cluster separately, and each needs its own resources, wall time and memory. These are AiiDA ``metadata.options``, set on the namespace of the builder that runs the calculation:"
+msgstr "Ogni calcul dal flus di lavôr al ven mandât al cluster a part, e ognidun al à bisugne des sôs risorsis, dal so wall time e de sô memorie. Chestis a son lis ``metadata.options`` di AiiDA, impostadis sul namespace dal builder che al eseguìs il calcul:"
+
+#: ../../source/user_guide/production_runs.rst:26
+msgid "Namespace"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:27
+msgid "Runs"
+msgstr "Al eseguìs"
+
+#: ../../source/user_guide/production_runs.rst:28
+msgid "``ab_initio_labelling.quantumespresso.pw``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:29
+msgid "Quantum ESPRESSO"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:30
+msgid "``training.mace.train`` or ``training.meta.train``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:31
+msgid "training and post-processing"
+msgstr "adestrament e post-elaborazion"
+
+#: ../../source/user_guide/production_runs.rst:32
+msgid "``exploration.md.lammps``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:33
+msgid "LAMMPS"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:34
+msgid "``committee_evaluation``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:35
+msgid "committee evaluation"
+msgstr "valutazion dal comitât"
+
+#: ../../source/user_guide/production_runs.rst:37
+msgid "On a SLURM cluster the account, partition, quality of service and GPU request go in the same place. The example below is for Leonardo (Booster partition) at CINECA, where all of them are required; other clusters have their own account, partition and QoS names. For brevity the function below, the same as in the first-run script, applies one set of settings to every calculation; nothing prevents passing different ones per code, which is what `examples/graphene/run_atp.py <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/run_atp.py>`_ does with one block of settings per code. The matching ``computer`` and ``code`` definitions are in `examples/setup_codes <https://github.com/aiida-trieste-developers/aiida-trains-pot/tree/main/examples/setup_codes>`_."
+msgstr "Suntun cluster SLURM l'account, la partizion, la cualitât dal servizi e la richieste di GPU a van tal stes puest. L'esempli chi sot al è par Leonardo (partizion Booster) al CINECA, dulà che a son ducj obligatoris; altris cluster a àn i lôr nons di account, partizion e QoS. Par brevitât la funzion chi sot, la stesse dal script de prime esecuzion, e aplighe un sôl insiemi di impostazions a ogni calcul; nuie nol impedìs di passâ impostazions diferentis par ogni codiç, che al è ce che al fâs `examples/graphene/run_atp.py <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/run_atp.py>`_ cuntun bloc di impostazions par codiç. Lis definizions di ``computer`` e ``code`` corispondentis a son in `examples/setup_codes <https://github.com/aiida-trieste-developers/aiida-trains-pot/tree/main/examples/setup_codes>`_."
+
+#: ../../source/user_guide/production_runs.rst:72
+msgid "The attributes set above are standard AiiDA ``CalcJob`` options: ``account``, ``queue_name`` (the SLURM partition), ``qos``, ``custom_scheduler_commands`` (extra lines added to the SLURM script), ``max_wallclock_seconds``, ``max_memory_kb``, ``resources``, ``withmpi``, ``import_sys_environment`` and ``prepend_text``."
+msgstr "I atribûts impostâts parsore a son opzions standard dai ``CalcJob`` di AiiDA: ``account``, ``queue_name`` (la partizion SLURM), ``qos``, ``custom_scheduler_commands`` (riis in plui zontadis al script SLURM), ``max_wallclock_seconds``, ``max_memory_kb``, ``resources``, ``withmpi``, ``import_sys_environment`` e ``prepend_text``."
+
+#: ../../source/user_guide/production_runs.rst:80
+msgid "Choosing the training engine"
+msgstr "Sielzi il motôr di adestrament"
+
+#: ../../source/user_guide/production_runs.rst:82
+msgid "The workflow trains its potentials with one of two engines, selected by ``training_engine``: ``\"MACE\"`` (default) or ``\"META\"`` (metatrain). The corresponding AiiDA plugin has to be installed (see :doc:`installation`). The choice matters twice: it decides which inputs are needed for training, and in which format LAMMPS reads the trained potentials, that is, which ``pair_style`` is used in the exploration. The pair style is set with ``exploration.potential_pair_style``, and the LAMMPS executable must have been built with the matching support:"
+msgstr "Il flus di lavôr al adestre i siei potenziâi cuntun di doi motôrs, selezionât di ``training_engine``: ``\"MACE\"`` (predefinît) o ``\"META\"`` (metatrain). Il plugin AiiDA corispondent al à di jessi instalât (cjale :doc:`installation`). La sielte e conte dôs voltis: e decît cuai input che a coventin pal adestrament, e in ce formât che LAMMPS al lei i potenziâi adestrâts, ven a stâi cuâl ``pair_style`` che al ven doprât te esplorazion. Il pair style si lu impueste cun ``exploration.potential_pair_style``, e l'eseguibil di LAMMPS al à di jessi stât compilât cul supuart corispondent:"
+
+#: ../../source/user_guide/production_runs.rst:93 ../../source/user_guide/production_runs.rst:146
+msgid "``training_engine``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:94
+msgid "``potential_pair_style``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:95
+msgid "Requires in LAMMPS"
+msgstr "Recuisît in LAMMPS"
+
+#: ../../source/user_guide/production_runs.rst:96 ../../source/user_guide/production_runs.rst:99
+msgid "``MACE``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:97
+msgid "``\"mace no_domain_decomposition\"`` (default)"
+msgstr "``\"mace no_domain_decomposition\"`` (predefinît)"
+
+#: ../../source/user_guide/production_runs.rst:98
+msgid "the MACE extension"
+msgstr "la estension MACE"
+
+#: ../../source/user_guide/production_runs.rst:100
+msgid "``\"mliap\"`` (written as ``pair_style mliap unified``)"
+msgstr "``\"mliap\"`` (scrit come ``pair_style mliap unified``)"
+
+#: ../../source/user_guide/production_runs.rst:101
+msgid "the ML-IAP and PYTHON packages"
+msgstr "i pachets ML-IAP e PYTHON"
+
+#: ../../source/user_guide/production_runs.rst:102
+msgid "``META``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:103
+msgid "``\"metatomic\"``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:104
+msgid "``lammps-metatomic``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:106
+msgid "If the pair style is not one the engine can produce, it is replaced by the engine's default and the replacement is written in the workchain report. With ``META``, leaving ``potential_pair_style`` unset therefore gives ``metatomic``; setting it explicitly is clearer."
+msgstr "Se il pair style nol è un di chei che il motôr al pues produsi, al ven sostituît cul predefinît dal motôr e la sostituzion e ven scrite tal report de workchain. Cun ``META``, lassâ ``potential_pair_style`` cence valôr al da duncje ``metatomic``; impostâlu in mût esplicit al è plui clâr."
+
+#: ../../source/user_guide/production_runs.rst:121
+msgid "The training itself is configured with a dictionary in the native format of the engine: ``training.mace.train.mace_config`` (see `examples/graphene/mace_config.yml <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/mace_config.yml>`_) or ``training.meta.train.meta_config`` (see `examples/graphene/meta_config.yml <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/meta_config.yml>`_). A complete metatrain run is `examples/graphene/run_atp_meta.py <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/run_atp_meta.py>`_."
+msgstr "L'adestrament stes si lu configure cuntun dizionari tal formât natîf dal motôr: ``training.mace.train.mace_config`` (cjale `examples/graphene/mace_config.yml <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/mace_config.yml>`_) o ``training.meta.train.meta_config`` (cjale `examples/graphene/meta_config.yml <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/meta_config.yml>`_). Une esecuzion metatrain complete e je `examples/graphene/run_atp_meta.py <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/run_atp_meta.py>`_."
+
+#: ../../source/user_guide/production_runs.rst:132
+msgid "Arguments of ``get_builder``"
+msgstr "Argoments di ``get_builder``"
+
+#: ../../source/user_guide/production_runs.rst:138
+msgid "Argument"
+msgstr "Argoment"
+
+#: ../../source/user_guide/production_runs.rst:139
+msgid "Meaning"
+msgstr "Significât"
+
+#: ../../source/user_guide/production_runs.rst:140
+msgid "``dataset``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:141
+msgid "``PESData`` with the starting structures. Required."
+msgstr "``PESData`` cu lis struturis di partence. Obligatori."
+
+#: ../../source/user_guide/production_runs.rst:142
+msgid "``abinitiolabelling_code``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:143
+msgid "Quantum ESPRESSO ``pw.x`` code. Required."
+msgstr "Codiç ``pw.x`` di Quantum ESPRESSO. Obligatori."
+
+#: ../../source/user_guide/production_runs.rst:144
+msgid "``md_code``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:145
+msgid "LAMMPS code. Required."
+msgstr "Codiç LAMMPS. Obligatori."
+
+#: ../../source/user_guide/production_runs.rst:147
+msgid "``\"MACE\"`` or ``\"META\"``. Default: ``\"MACE\"``."
+msgstr "``\"MACE\"`` o ``\"META\"``. Predefinît: ``\"MACE\"``."
+
+#: ../../source/user_guide/production_runs.rst:148
+msgid "``abinitiolabelling_protocol``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:149
+msgid "``\"fast\"``, ``\"balanced\"`` or ``\"stringent\"``, the ``PwBaseWorkChain`` protocols. Default: ``\"stringent\"``. ``fast`` is for tests, ``stringent`` for results to keep."
+msgstr "``\"fast\"``, ``\"balanced\"`` o ``\"stringent\"``, i protocoi di ``PwBaseWorkChain``. Predefinît: ``\"stringent\"``. ``fast`` al è pes provis, ``stringent`` pai risultâts di tignî."
+
+#: ../../source/user_guide/production_runs.rst:151
+msgid "``pseudo_family``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:152
+msgid "Label of an installed pseudopotential family, for example ``\"SSSP/1.3/PBE/efficiency\"``. If omitted, the family of the chosen protocol is used."
+msgstr "Etichete di une famee di pseudopotenziâi instalade, par esempli ``\"SSSP/1.3/PBE/efficiency\"``. Se e je omitude, si dopre la famee dal protocol sielt."
+
+#: ../../source/user_guide/production_runs.rst:154
+msgid "``md_protocol``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:155
+msgid "``None`` (default) or ``\"vdw_d2\"``, which adds a DFT-D2 dispersion correction to the potential during exploration."
+msgstr "``None`` (predefinît) o ``\"vdw_d2\"``, che al zonte une corezion di dispersion DFT-D2 al potenziâl dilunc la esplorazion."
+
+#: ../../source/user_guide/production_runs.rst:157
+msgid "``demo``"
+msgstr ""
+
+#: ../../source/user_guide/production_runs.rst:158
+msgid "``True`` lowers the dataset augmentation to toy size. Default: ``False``."
+msgstr "``True`` al ridûs la aumentazion dal dataset a dimensions di prove. Predefinît: ``False``."
+
+#: ../../source/user_guide/production_runs.rst:160
+msgid "The arguments that select protocols are the ones to decide on first for a production run. The default ab initio protocol is the most accurate one, and the ``fast`` protocol of the first run is meant for tests only. ``get_builder`` also sets one default MD run (300 K, ``nvt``, 50 steps), to be replaced for production; see :ref:`stage-explore`."
+msgstr "I argoments che a sielzin i protocoi a son i prins di decidi par une esecuzion di produzion. Il protocol ab initio predefinît al è il plui precîs, e il protocol ``fast`` de prime esecuzion al è pensât dome pes provis. ``get_builder`` al impueste ancje une esecuzion MD predefinide (300 K, ``nvt``, 50 pas), di sostituî pe produzion; cjale :ref:`stage-explore`."
+
+#: ../../source/user_guide/production_runs.rst:166
+msgid "A longer configuration"
+msgstr "Une configurazion plui lungje"
+
+#: ../../source/user_guide/production_runs.rst:168
+msgid "The script below puts these pieces together for a longer run. It reuses ``set_scheduler`` from above, and, compared with the first-run script, it uses the default (``stringent``) ab initio protocol, the DFT-D2 correction in the MD, longer MD runs at two temperatures, a larger committee and explicit selection thresholds. It trains four potentials with MACE, explores two temperatures with ``npt`` dynamics, and keeps the default augmentation."
+msgstr "Il script chi sot al met adun chescj tocs par une esecuzion plui lungje. Al torne a doprâ ``set_scheduler`` di parsore e, rispiet al script de prime esecuzion, al dopre il protocol ab initio predefinît (``stringent``), la corezion DFT-D2 te MD, esecuzions MD plui lungjis a dôs temperaduris, un comitât plui grant e limits di selezion esplicits. Al adestre cuatri potenziâi cun MACE, al esplore dôs temperaduris cun dinamiche ``npt`` e al ten la aumentazion predefinide."
+
+#: ../../source/user_guide/production_runs.rst:242
+msgid "The example script ``examples/graphene/run_atp.py`` also uses a few options that depend on the cluster and the codes:"
+msgstr "Il script di esempli ``examples/graphene/run_atp.py`` al dopre ancje cualchi opzion che e dipent dal cluster e dai codiçs:"
+
+#: ../../source/user_guide/production_runs.rst:245
+msgid "``builder.training.mace.train.metadata.options.prepend_text`` defines a ``mace_run_train`` shell function that launches the training through ``srun``, for training on multiple GPUs."
+msgstr "``builder.training.mace.train.metadata.options.prepend_text`` al definìs une funzion di shell ``mace_run_train`` che e invie l'adestrament traviers di ``srun``, par adestrâ su plui GPU."
+
+#: ../../source/user_guide/production_runs.rst:247
+msgid "``builder.exploration.md.lammps.settings = Dict({\"additional_cmdline_params\": [\"-k\", \"on\", \"g\", \"1\", \"-sf\", \"kk\"]})`` runs LAMMPS with the Kokkos GPU package."
+msgstr "``builder.exploration.md.lammps.settings = Dict({\"additional_cmdline_params\": [\"-k\", \"on\", \"g\", \"1\", \"-sf\", \"kk\"]})`` al fâs zirâ LAMMPS cul pachet GPU Kokkos."
+
+#: ../../source/user_guide/production_runs.rst:249
+msgid "``builder.ab_initio_labelling.quantumespresso.pw.metadata.options.withmpi = True`` runs ``pw.x`` under ``mpirun``."
+msgstr "``builder.ab_initio_labelling.quantumespresso.pw.metadata.options.withmpi = True`` al fâs zirâ ``pw.x`` sot ``mpirun``."
+
+#: ../../source/user_guide/production_runs.rst:255
+msgid "Resuming a run"
+msgstr "Ripiâ une esecuzion"
+
+#: ../../source/user_guide/production_runs.rst:257
+msgid "Production runs are long, and a run can stop because of a failed job or an exhausted allocation, or simply because more loops are wanted once the first ones are examined. Instead of starting over, ``get_builder_resume`` creates a builder from a previous run:"
+msgstr "Lis esecuzions di produzion a son lungjis, e une esecuzion si pues fermâ par vie di un lavôr falît o di une assegnazion di risorsis finide, o dome parcè che si vûl fâ altris ciclis dopo vê cjalât i prins. Invezit di tornâ a scomençâ, ``get_builder_resume`` al cree un builder a partî di une esecuzion precedente:"
+
+#: ../../source/user_guide/production_runs.rst:268
+msgid "The dataset, and the potentials, checkpoints and explored dataset if the previous run produced them, are taken from its outputs. The stages already reflected in them are skipped in the first loop: augmentation is not repeated, and labelling and training are skipped if potentials exist. The Quantum ESPRESSO and LAMMPS codes are taken from the previous run unless ``abinitiolabelling_code`` or ``md_code`` is passed. Other keyword arguments are forwarded to ``get_builder``."
+msgstr "Il dataset, e i potenziâi, i checkpoint e il dataset esplorât se la esecuzion precedente ju à produsûts, a vegnin cjolts dai siei output. Lis fasis za rifletudis in chescj a vegnin saltadis tal prin cicli: la aumentazion no ven ripetude, e etichetadure e adestrament a vegnin saltâts se a esistin za potenziâi. I codiçs di Quantum ESPRESSO e LAMMPS a vegnin cjolts de esecuzion precedente, a mancul che no si passin ``abinitiolabelling_code`` o ``md_code``. Chei altris argoments a vegnin passâts indevant a ``get_builder``."
+
+#: ../../source/user_guide/production_runs.rst:274
+msgid "The rest of the builder (training config and codes, exploration parameters, evaluation code, scheduler options, thresholds) is not copied from the previous run. Set it again, for instance with a function shared by the first submission and the resumed ones."
+msgstr "Il rest dal builder (configurazion e codiçs dal adestrament, parametris de esplorazion, codiç de valutazion, opzions dal scheduler, limits) nol ven copiât de esecuzion precedente. Torne a impostâlu, par esempli cuntune funzion condividude tra la prime mandade e chês ripiadis."
+
+#: ../../source/user_guide/production_runs.rst:281
+msgid "Looking at the results"
+msgstr "Cjalâ i risultâts"
+
+#: ../../source/user_guide/production_runs.rst:295
+msgid "Once the run has produced at least one committee evaluation, the plotting functions of ``aiida_trainspot.utils.plotting`` summarise how well the committee reproduces the reference data. ``plot_parity`` draws, for each completed committee evaluation, predicted against DFT energies, forces and stresses, shows a table of RMSEs and, with more than one loop, the RMSE across loops. ``detailed=True`` adds the RMSE of each potential to the table."
+msgstr "Apene che la esecuzion e à produsût almancul une valutazion dal comitât, lis funzions di grafic di ``aiida_trainspot.utils.plotting`` a mostrin in curt trop ben che il comitât al riprodûs i dâts di riferiment. ``plot_parity`` al dissegne, par ogni valutazion dal comitât completade, energjiis, fuarcis e tensions dadis dai potenziâi cuintri chês DFT, al mostre une tabele di RMSE e, cun plui di un cicli, il RMSE di un cicli al altri. ``detailed=True`` al zonte ae tabele il RMSE di ogni potenziâl."
+
+#: ../../source/user_guide/production_runs.rst:301
+msgid "``plot_error_calibration`` draws the committee deviation against the actual error. The slope of the linear fit is the factor that scales ``thr_energy``, ``thr_forces`` and ``thr_stress``."
+msgstr "``plot_error_calibration`` al dissegne la deviazion dal comitât cuintri l'erôr reâl. La pendence dal fit lineâr e je il fatôr che al scjale ``thr_energy``, ``thr_forces`` e ``thr_stress``."
+
+#: ../../source/user_guide/production_runs.rst:304
+msgid "Both functions take ``cycles`` (1-based loop indices; default all completed loops), ``sets`` (a subset of ``\"training\"``, ``\"validation\"`` and ``\"test\"``), ``show`` and ``save_path``. In a notebook the figures are displayed inline. A script with these calls is `examples/plot_results.py <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/plot_results.py>`_."
+msgstr "Dutis dôs lis funzions a acetin ``cycles`` (indiçs dai ciclis contâts a partî di 1; predefinît: ducj i ciclis completâts), ``sets`` (un sotinsiemi di ``\"training\"``, ``\"validation\"`` e ``\"test\"``), ``show`` e ``save_path``. Intun notebook lis figuris a vegnin mostradis dentri de pagjine. Un script cun chestis clamadis al è `examples/plot_results.py <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/plot_results.py>`_."
+
+#: ../../source/user_guide/production_runs.rst:309
+msgid "The outputs of the workchain (``dataset``, ``models_lammps``, ``models_ase``, ``RMSE``, ...) are listed in :ref:`loop-stages`."
+msgstr "I output de workchain (``dataset``, ``models_lammps``, ``models_ase``, ``RMSE``, ...) a son elencâts in :ref:`loop-stages`."

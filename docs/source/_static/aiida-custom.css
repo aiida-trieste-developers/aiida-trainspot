@@ -115,3 +115,264 @@ div.highlight-bash div.highlight {
 div.highlight-console div.highlight {
     background-color: aliceblue;
 }
+
+/* ---------------------------------------------------------------------------
+   Credit rows. Every logo sits on a plate of its own so the artwork stays
+   legible whatever the page background is, and the plates share one size so a
+   wide wordmark and a square mark carry the same weight instead of piling up
+   at whatever width their aspect ratio happens to give them. The plates flex,
+   so a row of five stays a row of five rather than breaking four-plus-one.
+   --------------------------------------------------------------------------- */
+.logo-row,
+.logo-row > p {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.85rem;
+}
+.logo-row { margin: 1.5rem 0 2rem; }
+.logo-row > p { margin: 0; width: 100%; }
+
+.logo-row a,
+.logo-row > p > img {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 7.5rem;
+    max-width: 10.5rem;
+    height: 4.5rem;
+    padding: 0.55rem 0.85rem;
+    border-radius: 10px;
+    text-decoration: none;
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.10);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+/* The theme paints every content image white and dims it in dark mode. Both
+   would fight the plate and recolour the artwork, so they come off here. */
+.logo-row img,
+.bd-content .logo-row img,
+html[data-theme="dark"] .bd-content .logo-row img {
+    max-width: 100%;
+    max-height: 3.2rem;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    background: transparent !important;
+    border-radius: 0 !important;
+    filter: none !important;
+    padding: 0 !important;
+}
+
+.logo-row a:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+    border-color: rgba(15, 23, 42, 0.22);
+}
+.logo-row a:focus-visible {
+    outline: 2px solid var(--pst-color-primary, #0096de);
+    outline-offset: 3px;
+}
+/* no external-link glyph inside a logo plate */
+.logo-row a.reference.external::after { content: none; }
+
+html[data-theme="dark"] .logo-row a,
+html[data-theme="dark"] .logo-row > p > img {
+    border-color: rgba(255, 255, 255, 0.14);
+    box-shadow: none;
+}
+@media (prefers-color-scheme: dark) {
+    html:not([data-theme="light"]) .logo-row a,
+    html:not([data-theme="light"]) .logo-row > p > img {
+        border-color: rgba(255, 255, 255, 0.14);
+        box-shadow: none;
+    }
+}
+
+@media (max-width: 520px) {
+    .logo-row a,
+    .logo-row > p > img { flex-basis: 6.5rem; height: 4rem; }
+    .logo-row img { max-height: 2.6rem; }
+}
+
+/* ---------------------------------------------------------------------------
+   Active-learning animation on the landing page.
+   The main layout runs in two columns, 745 wide, which sits inside the theme's
+   content column at close to its native size. Below ~700px it is replaced by a
+   portrait rebuild sized by height, so it fits a phone screen without scrolling.
+   --------------------------------------------------------------------------- */
+.al-anim {
+    --diag-bg: #ffffff;
+    --diag-bg-tinted: #f0f5fa;
+    --diag-bg-tinted-alt: #eaf0f8;
+    --diag-text: #1a1d2e;
+    --diag-text-muted: #6b7080;
+    --diag-primary: #0096de;
+    --diag-primary-dark: #0077b3;
+    --diag-accent-green: #28a006;
+    --diag-accent-orange: #e06800;
+    background: linear-gradient(180deg, var(--diag-bg-tinted-alt) 0%,
+                                        var(--diag-bg-tinted) 45%,
+                                        var(--diag-bg) 100%);
+    border-radius: 16px;
+    padding: 1rem 0.5rem;
+    margin: 1.5rem 0 2rem;
+}
+html[data-theme="dark"] .al-anim {
+    --diag-bg: #14162a;
+    --diag-bg-tinted: #121428;
+    --diag-bg-tinted-alt: #14162c;
+    --diag-text: #e0e1e6;
+    --diag-text-muted: #8a8f9e;
+    --diag-primary: #38b4f0;
+    --diag-primary-dark: #2a86b8;
+    --diag-accent-green: #30b808;
+    --diag-accent-orange: #ff7d17;
+}
+@media (prefers-color-scheme: dark) {
+    html:not([data-theme="light"]) .al-anim {
+        --diag-bg: #14162a;
+        --diag-bg-tinted: #121428;
+        --diag-bg-tinted-alt: #14162c;
+        --diag-text: #e0e1e6;
+        --diag-text-muted: #8a8f9e;
+        --diag-primary: #38b4f0;
+        --diag-primary-dark: #2a86b8;
+        --diag-accent-green: #30b808;
+        --diag-accent-orange: #ff7d17;
+    }
+}
+/* Hidden while the page is still being parsed (class set by al-anim.js), then faded in. */
+.al-anim svg { transition: opacity 0.4s ease; }
+html.al-loading .al-anim svg { opacity: 0; }
+
+.al-anim .al-wide { display: block; }
+.al-anim .al-tall { display: none; }
+.al-anim .al-wide svg {
+    display: block;
+    width: 100%;
+    max-width: 745px;      /* its own size: scaling it up would only blur the type's proportions */
+    height: auto;
+    margin: 0 auto;
+}
+.al-anim .al-tall svg {
+    display: block;
+    margin: 0 auto;
+    width: auto;
+    max-width: 100%;
+    height: min(78vh, 640px);
+    height: min(78svh, 640px);
+}
+@media (max-width: 700px) {
+    .al-anim .al-wide { display: none; }
+    .al-anim .al-tall { display: block; }
+}
+
+/* ---------------------------------------------------------------------------
+   Tagline under the sidebar logo. It is a slogan, not navigation: small, quiet,
+   and set apart by a hairline rather than by shouting.
+   --------------------------------------------------------------------------- */
+.sidebar-tagline {
+    margin: -0.35rem 0.35rem 1.1rem;
+    padding-top: 0.7rem;
+    border-top: 1px solid var(--pst-color-border, rgba(128, 134, 150, 0.3));
+    font-size: 0.78rem;
+    font-style: italic;
+    line-height: 1.5;
+    text-align: center;
+    text-wrap: balance;
+    color: var(--pst-color-text-muted, #6b7080);
+}
+.sidebar-tagline__hl {
+    font-weight: 700;
+    color: var(--pst-color-text-base, #1a1d2e);
+}
+
+/* ---------------------------------------------------------------------------
+   Language switcher under the sidebar tagline. A segmented control, small
+   enough to read as a setting rather than as navigation.
+   --------------------------------------------------------------------------- */
+.lang-switcher {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+    margin: 0 0.35rem 1.1rem;
+}
+.lang-switcher__item {
+    padding: 0.2rem 0.6rem;
+    border: 1px solid var(--pst-color-border, rgba(128, 134, 150, 0.35));
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1.6;
+    text-decoration: none;
+    color: var(--pst-color-text-muted, #6b7080);
+    background: transparent;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.lang-switcher__item:first-child { border-radius: 6px 0 0 6px; }
+.lang-switcher__item:last-child { border-radius: 0 6px 6px 0; }
+.lang-switcher__item + .lang-switcher__item { margin-left: -1px; }
+a.lang-switcher__item:hover {
+    color: var(--pst-color-text-base, #1a1d2e);
+    background: var(--pst-color-surface, rgba(128, 134, 150, 0.12));
+    text-decoration: none;
+}
+.lang-switcher__item--current {
+    color: var(--pst-color-background, #fff);
+    background: var(--pst-color-primary, #0096de);
+    border-color: var(--pst-color-primary, #0096de);
+    cursor: default;
+}
+
+/* ---------------------------------------------------------------------------
+   Accordions in the page body (the `details` directive). They render as bare
+   <details>, so the box, the marker and the spacing are ours. The chevron is
+   drawn with borders rather than an icon font, so it cannot fall back to a
+   missing glyph.
+   --------------------------------------------------------------------------- */
+.bd-article-container details {
+    margin: 1.25rem 0;
+    border: 1px solid var(--pst-color-border, rgba(128, 134, 150, 0.35));
+    border-radius: 10px;
+    background: var(--pst-color-surface, rgba(128, 134, 150, 0.06));
+}
+.bd-article-container details > summary {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+}
+.bd-article-container details > summary::-webkit-details-marker { display: none; }
+.bd-article-container details > summary::before {
+    content: "";
+    flex: none;
+    width: 0.42em;
+    height: 0.42em;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg);
+    transition: transform 0.15s ease;
+}
+.bd-article-container details[open] > summary::before { transform: rotate(45deg); }
+.bd-article-container details[open] > summary {
+    border-bottom: 1px solid var(--pst-color-border, rgba(128, 134, 150, 0.35));
+    margin-bottom: 0.9rem;
+}
+.bd-article-container details > :not(summary) {
+    margin-left: 1rem;
+    margin-right: 1rem;
+}
+.bd-article-container details[open] { padding-bottom: 0.4rem; }
+
+/* The theme appends an empty #rtd-footer-container (filled only on Read the Docs) at the bottom of
+   the left sidebar; its negative margins push the content 1rem past the bottom and give the sidebar
+   a scrollbar it does not need. Hide it while empty. */
+#rtd-footer-container:empty { display: none; }

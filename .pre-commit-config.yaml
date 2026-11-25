@@ -20,6 +20,8 @@ repos:
     rev: v0.7.2
     hooks:
     -   id: ruff
+        # One-off generators of the landing-page SVG: formatted, but not held to library lint rules.
+        exclude: ^docs/tools/
     -   id: ruff-format
 
 -   repo: https://github.com/asottile/pyupgrade

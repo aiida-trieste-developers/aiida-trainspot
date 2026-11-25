@@ -1,0 +1,18 @@
+# Friulian translation of the AiiDA-TrainsPot documentation.
+msgid ""
+msgstr ""
+"Project-Id-Version: AiiDA-TrainsPot\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fur\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+
+#: ../../source/module_guide/index.rst:2
+msgid "API reference"
+msgstr "Riferiment API"
+
+#: ../../source/module_guide/index.rst:4
+msgid "This section describes the various workchains, calculations, parsers, and data types provided by the AiiDA-TrainsPot module for training and evaluating interatomic potentials."
+msgstr "Cheste sezion e descrîf lis workchain, i calcui, i parser e i gjenars di dâts che il modul AiiDA-TrainsPot al furnìs par adestrâ e valutâ potenziâi interatomics."

@@ -4,8 +4,8 @@ Main TrainsPot WorkChain
 .. toctree::
    :maxdepth: 1
 
-.. currentmodule:: aiida_trains_pot
+.. currentmodule:: aiida_trainspot
 
 **Main TrainsPot WorkChain**
   .. aiida-workchain:: TrainsPotWorkChain
-    :module: aiida_trains_pot.aiida_trains_pot_workflow.aiida_trains_pot_workflow
+    :module: aiida_trainspot.workflows.trainspot

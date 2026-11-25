@@ -5,9 +5,9 @@ Scripts
    :maxdepth: 3
 
 
-.. currentmodule:: aiida_trains_pot
+.. currentmodule:: aiida_trainspot
 
 The module provides the following script for code setup:
 
 **Portable Codes Installation Script**
-  .. autofunction:: aiida_trains_pot.utils.install_portable_codes.main
+  .. autofunction:: aiida_trainspot.utils.install_portable_codes.main

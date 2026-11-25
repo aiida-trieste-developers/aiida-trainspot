@@ -1,0 +1,106 @@
+# Friulian translation of the AiiDA-TrainsPot documentation.
+msgid ""
+msgstr ""
+"Project-Id-Version: AiiDA-TrainsPot\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fur\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+
+#: ../../source/user_guide/installation.rst:5
+msgid "Installation"
+msgstr "Instalazion"
+
+#: ../../source/user_guide/installation.rst:7
+msgid "AiiDA-TrainsPot runs on a machine you control: a workstation, a login node, a small server. It never runs the scientific codes itself. It connects over SSH to one or more remote computers, submits Quantum ESPRESSO, LAMMPS and training jobs to their scheduler, and retrieves the results when they finish."
+msgstr "AiiDA-TrainsPot al zire suntune machine che tu controlis: une stazion di lavôr, un login node, un piçul servidôr. Nol eseguìs mai lui i codiçs sientifics. Si conet vie SSH a une o plui machinis rimotis, al mande i lavôrs di Quantum ESPRESSO, LAMMPS e adestrament al lôr scheduler, e al recupere i risultâts cuant che a finissin."
+
+#: ../../source/user_guide/installation.rst:12
+msgid "That split decides where each piece goes. The Python packages below are installed on the local machine. The Quantum ESPRESSO, LAMMPS and training-engine executables are installed on the remote machine that runs the calculations."
+msgstr "Cheste division e decît dulà che al va ogni toc. I pachets Python chi sot a vegnin instalâts te machine locâl. I eseguibii di Quantum ESPRESSO, LAMMPS e dal motôr di adestrament a vegnin instalâts te machine rimote che e eseguìs i calcui."
+
+#: ../../source/user_guide/installation.rst:17
+msgid "Prerequisites"
+msgstr "Prerecuisits"
+
+#: ../../source/user_guide/installation.rst:19
+msgid "On the local machine, a working |aiida-core|_ installation with a profile configured and the daemon running."
+msgstr "Te machine locâl, une instalazion funzionant di |aiida-core|_ cuntun profîl configurât e il demoni in esecuzion."
+
+#: ../../source/user_guide/installation.rst:22
+msgid "On the remote machine:"
+msgstr "Te machine rimote:"
+
+#: ../../source/user_guide/installation.rst:24
+msgid "Quantum ESPRESSO, at least the ``pw.x`` executable, for ab initio labelling. See the `installation instructions <https://www.quantum-espresso.org/Doc/user_guide/node7.html>`_."
+msgstr "Quantum ESPRESSO, almancul l'eseguibil ``pw.x``, pe etichetadure ab initio. Cjale lis `istruzions di instalazion <https://www.quantum-espresso.org/Doc/user_guide/node7.html>`_."
+
+#: ../../source/user_guide/installation.rst:26
+msgid "LAMMPS (`official installation guide <https://docs.lammps.org/Install.html>`_), built with support for the potentials you plan to explore with: the `MACE extension <https://mace-docs.readthedocs.io/en/latest/guide/lammps.html>`_ for ``pair_style mace``, the `ML-IAP and PYTHON packages <https://mace-docs.readthedocs.io/en/latest/guide/lammps_mliap.html>`_ for ``pair_style mliap unified``, or `lammps-metatomic <https://docs.metatensor.org/metatomic/latest/engines/lammps.html>`_ for ``pair_style metatomic`` with metatrain models."
+msgstr "LAMMPS (`guide uficiâl di instalazion <https://docs.lammps.org/Install.html>`_), compilât cul supuart pai potenziâi che tu vûs esplorâ: la `estension MACE <https://mace-docs.readthedocs.io/en/latest/guide/lammps.html>`_ par ``pair_style mace``, i `pachets ML-IAP e PYTHON <https://mace-docs.readthedocs.io/en/latest/guide/lammps_mliap.html>`_ par ``pair_style mliap unified``, o `lammps-metatomic <https://docs.metatensor.org/metatomic/latest/engines/lammps.html>`_ par ``pair_style metatomic`` cui modei metatrain."
+
+#: ../../source/user_guide/installation.rst:33
+msgid "At least one training engine, `MACE <https://github.com/ACEsuit/mace>`_ or `metatrain <https://docs.metatensor.org/metatrain/latest/getting-started/quickstart.html>`_, each preferably in its own Python environment."
+msgstr "Almancul un motôr di adestrament, `MACE <https://github.com/ACEsuit/mace>`_ o `metatrain <https://docs.metatensor.org/metatrain/latest/getting-started/quickstart.html>`_, ognidun miôr se dentri dal so ambient Python."
+
+#: ../../source/user_guide/installation.rst:37
+msgid "A GPU cluster with SLURM, such as Leonardo at CINECA, is strongly recommended for anything beyond toy examples."
+msgstr "Un cluster GPU cun SLURM, come Leonardo al CINECA, al è fuartementri conseât par dut ce che al va oltri i esemplis di prove."
+
+#: ../../source/user_guide/installation.rst:41
+msgid "Installing AiiDA-TrainsPot and its dependencies"
+msgstr "Instalâ AiiDA-TrainsPot e lis sôs dipendencis"
+
+#: ../../source/user_guide/installation.rst:43
+msgid "In order to install AiiDA-TrainsPot, you need to clone the repository and install it on your local machine."
+msgstr "Par instalâ AiiDA-TrainsPot, tu âs di clonâ il dipuesit e instalâlu su la tô machine locâl."
+
+#: ../../source/user_guide/installation.rst:52
+msgid "The current release of ``aiida-lammps`` available on PyPI and automatically installed by the previous command does not support the ``mliap`` and ``metatomic`` LAMMPS pair styles used by AiiDA-TrainsPot."
+msgstr "La version atuâl di ``aiida-lammps`` disponibil su PyPI e instalade in automatic dal comant di prime no supuarte i pair style LAMMPS ``mliap`` e ``metatomic`` doprâts di AiiDA-TrainsPot."
+
+#: ../../source/user_guide/installation.rst:55
+msgid "You should install the version of ``aiida-lammps`` that supports those pair styles, which is available on `our fork <https://github.com/aiida-trieste-developers/aiida-lammps>`_:"
+msgstr "Tu varessis di instalâ la version di ``aiida-lammps`` che e supuarte chei pair style, disponibil sul `nestri fork <https://github.com/aiida-trieste-developers/aiida-lammps>`_:"
+
+#: ../../source/user_guide/installation.rst:63
+msgid "Finally, install the AiiDA plugin for each training engine you intend to use. These are not yet on PyPI, so install them straight from their repositories:"
+msgstr "Par finî, instale il plugin AiiDA par ogni motôr di adestrament che tu vûs doprâ. No son ancjemò su PyPI, duncje instalii dret dai lôr dipuesits:"
+
+#: ../../source/user_guide/installation.rst:71
+msgid "Install only the engines you intend to train with. The ``training_engine`` input of ``TrainsPotWorkChain`` selects among those available."
+msgstr "Instale nome i motôrs che tu intindis doprâ pal adestrament. L'input ``training_engine`` di ``TrainsPotWorkChain`` al sielç fra chei disponibii."
+
+#: ../../source/user_guide/installation.rst:75
+msgid "Pseudopotentials"
+msgstr "Pseudopotenziâi"
+
+#: ../../source/user_guide/installation.rst:77
+msgid "The ab initio labelling takes its pseudopotentials from a family installed in the AiiDA profile with `aiida-pseudo <https://aiida-pseudo.readthedocs.io/>`_, which is installed together with ``aiida-quantumespresso``. The examples use the SSSP 1.3 PBE efficiency family:"
+msgstr "La etichetadure ab initio e cjape i pseudopotenziâi di une famee instalade tal profîl di AiiDA cun `aiida-pseudo <https://aiida-pseudo.readthedocs.io/>`_, che al ven instalât adun cun ``aiida-quantumespresso``. I esemplis a doprin la famee SSSP 1.3 PBE efficiency:"
+
+#: ../../source/user_guide/installation.rst:86
+msgid "Computers and codes"
+msgstr "Computer e codiçs"
+
+#: ../../source/user_guide/installation.rst:88
+msgid "In order to interact with the executables installed on the remote machine, AiiDA asks you to register a ``computer`` for the remote machine and a ``code`` for each executable it will run there: Quantum ESPRESSO, LAMMPS, and one per training-engine stage. A full set of working setup files for Leonardo at CINECA is in `examples/setup_codes <https://github.com/aiida-trieste-developers/aiida-trains-pot/tree/main/examples/setup_codes>`_ and can be used as a template for other clusters."
+msgstr "Par interagjî cui eseguibii instalâts te machine rimote, AiiDA ti domande di regjistrâ un ``computer`` pe machine rimote e un ``code`` par ogni eseguibil che al eseguirà li': Quantum ESPRESSO, LAMMPS e un par ogni fase dal motôr di adestrament. Un insiemi complet di file di setup funzionants par Leonardo al CINECA al è in `examples/setup_codes <https://github.com/aiida-trieste-developers/aiida-trains-pot/tree/main/examples/setup_codes>`_ e al pues jessi doprât come model par altris cluster."
+
+#: ../../source/user_guide/installation.rst:95
+msgid "A detailed guide to registering computers and codes, and to setting up the SSH connection, can be found on AiiDA's website: `how-to on connecting to a remote computer <https://aiida.readthedocs.io/projects/aiida-core/en/stable/howto/ssh.html>`_."
+msgstr "Une guide detaiade par regjistrâ computer e codiçs, e par configurâ la conession SSH, e pues jessi cjatade tal sît di AiiDA: `how-to su la conession a une machine rimote <https://aiida.readthedocs.io/projects/aiida-core/en/stable/howto/ssh.html>`_."
+
+#: ../../source/user_guide/installation.rst:100
+msgid "Committee evaluation"
+msgstr "Valutazion dal comitât"
+
+#: ../../source/user_guide/installation.rst:102
+msgid "Committee evaluation is the one code you do not install on the remote machine. It is an AiiDA ``PortableCode``: its files live in the AiiDA repository and are uploaded with each calculation, so there is nothing to build on the cluster. It does run in the Python environment of the training engine on the remote machine, since it loads the trained potentials. Install it with:"
+msgstr "La valutazion dal comitât e je il codiç che no tu instalis su la machine rimote. Al è un ``PortableCode`` di AiiDA: i siei file a stan tal dipuesit di AiiDA e a vegnin cjariâts sù cun ogni calcul, duncje no 'nd è nuie di costruî sul cluster. Però al zire tal ambient Python dal motôr di adestrament su la machine rimote, parcè che al cjame i potenziâi adestrâts. Instalilu cun:"
+
+#: ../../source/user_guide/installation.rst:111
+msgid "The command asks for a label for the code (``committee_evaluation_portable`` is the one used in the examples) and for a prepend command, run on the remote machine before the evaluation: it has to activate the environment of the training engine, for example ``source /path/to/mace_env/bin/activate``. Install one such code per training engine you use, and give its label to ``committee_evaluation.code`` when launching a run."
+msgstr "Il comant al domande une etichete pal codiç (``committee_evaluation_portable`` e je chê doprade tai esemplis) e un comant di prepend, eseguît su la machine rimote prime de valutazion: al à di ativâ l'ambient dal motôr di adestrament, par esempli ``source /path/to/mace_env/bin/activate``. Instale un codiç di chescj par ogni motôr di adestrament che tu dopris, e da la sô etichete a ``committee_evaluation.code`` cuant che tu fasis partî une esecuzion."

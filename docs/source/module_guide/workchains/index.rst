@@ -9,9 +9,8 @@ Workchains
    abinitio_labelling_wc
    training_wc
    exploration_wc
-   mace_wc
 
-.. currentmodule:: aiida_trains_pot
+.. currentmodule:: aiida_trainspot
 
 
 Below are the primary workchains available in the module:
@@ -19,26 +18,22 @@ Below are the primary workchains available in the module:
 
 
 **Main TrainsPot WorkChain**
-  .. autoclass:: aiida_trains_pot.aiida_trains_pot_workflow.aiida_trains_pot_workflow.TrainsPotWorkChain
+  .. autoclass:: aiida_trainspot.workflows.trainspot.TrainsPotWorkChain
      :members:
      :exclude-members: DEFAULT_RATTLE_rattle_fraction
 
 **Dataset Augmentation WorkChain**
-  .. autoclass:: aiida_trains_pot.datasetaugmentation.datasetaugmentation_wc.datasetaugmentation_wc.DatasetAugmentationWorkChain
+  .. autoclass:: aiida_trainspot.workflows.dataset_augmentation.DatasetAugmentationWorkChain
      :members:
 
 **Ab Initio Labelling WorkChain**
-  .. autoclass:: aiida_trains_pot.aiida_trains_pot_workflow.abinitiolabelling_wc.AbInitioLabellingWorkChain
+  .. autoclass:: aiida_trainspot.workflows.labelling.AbInitioLabellingWorkChain
      :members:
 
 **Training WorkChain**
-  .. autoclass:: aiida_trains_pot.aiida_trains_pot_workflow.training_wc.TrainingWorkChain
+  .. autoclass:: aiida_trainspot.workflows.training.TrainingWorkChain
      :members:
 
 **MD Exploration WorkChain**
-  .. autoclass:: aiida_trains_pot.aiida_trains_pot_workflow.exploration_wc.ExplorationWorkChain
-     :members:
-
-**MACE Training WorkChain**
-  .. autoclass:: aiida_trains_pot.mace.mace_train_wc.mace_train_wc.MaceTrainWorkChain
+  .. autoclass:: aiida_trainspot.workflows.exploration.ExplorationWorkChain
      :members:

@@ -4,10 +4,10 @@ Data Types
 .. toctree::
    :maxdepth: 3
 
-.. currentmodule:: aiida_trains_pot
+.. currentmodule:: aiida_trainspot
 
 The following data type is included to store potential, energy, stress data:
 
 **PES Data**
-  .. autoclass:: aiida_trains_pot.data.pesdata.PESData
+  .. autoclass:: aiida_trainspot.data.pesdata.PESData
      :members:

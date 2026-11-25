@@ -1,0 +1,342 @@
+# Friulian translation of the AiiDA-TrainsPot documentation.
+msgid ""
+msgstr ""
+"Project-Id-Version: AiiDA-TrainsPot\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fur\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+
+#: ../../source/user_guide/loop_stages.rst:5
+msgid "The active-learning loop"
+msgstr "Il cicli di aprendiment atîf"
+
+#: ../../source/user_guide/loop_stages.rst:7
+msgid "``TrainsPotWorkChain`` implements the active-learning loop as a sequence of stages. A dataset is first built from the input structures (augment). The loop then labels the structures that do not yet have reference data (label), trains a committee of potentials on them (train), runs molecular dynamics with the new potentials to find configurations the training set does not cover (explore), and measures how much the committee disagrees on those configurations (evaluate). The most uncertain ones are added to the dataset, and the next iteration starts from there."
+msgstr "``TrainsPotWorkChain`` al implemente il cicli di aprendiment atîf come une secuence di fasis. Prime di dut si costruìs un dataset a partî des struturis di input (aumentâ). Dopo il cicli al etichete lis struturis che no àn ancjemò dâts di riferiment (etichetâ), al adestre un comitât di potenziâi su di lôr (adestrâ), al fâs zirâ dinamiche molecolâr cui gnûfs potenziâi par cjatâ configurazions che l'insiemi di adestrament nol cuvierç (esplorâ), e al misure trop che il comitât nol è dacuardi su chês configurazions (valutâ). Lis plui incertis a vegnin zontadis al dataset, e la iterazion sucessive e partìs di li."
+
+#: ../../source/user_guide/loop_stages.rst:18
+msgid "Each stage has a namespace on the builder named after it, and every input has a default, so a builder from ``TrainsPotWorkChain.get_builder()`` runs as is (see :ref:`get-started`). This page describes what each stage does and the settings that are worth changing."
+msgstr "Ogni fase e à sul builder un namespace cul so stes non, e ogni input al à un valôr predefinît, duncje un builder fat cun ``TrainsPotWorkChain.get_builder()`` al zire cussì come che al è (cjale :ref:`get-started`). Cheste pagjine e descrîf ce che e fâs ogni fase e lis impostazions che al vâl la pene cambiâ."
+
+#: ../../source/user_guide/loop_stages.rst:23
+msgid "Loop control"
+msgstr "Control dal cicli"
+
+#: ../../source/user_guide/loop_stages.rst:25
+msgid "Two kinds of inputs act on the loop as a whole. ``max_loops`` is the maximum number of iterations of the label/train/explore/evaluate cycle (default ``10``). Augmentation is not part of the cycle: it runs once, before the first iteration."
+msgstr "Doi gjenars di input a agjissin sul cicli intal so complès. ``max_loops`` al è il numar massim di iterazions dal cicli etichetâ/adestrâ/esplorâ/valutâ (predefinît ``10``). La aumentazion no fâs part dal cicli: e zire une volte sole, prime de prime iterazion."
+
+#: ../../source/user_guide/loop_stages.rst:29
+msgid "The flags ``do_dataset_augmentation``, ``do_ab_initio_labelling``, ``do_training`` and ``do_exploration`` (all ``True`` by default) switch a stage off for the first iteration. After that, labelling, training and exploration are always on and augmentation is off. Switching stages off is how a run starts from an existing dataset or from existing potentials; see :ref:`production-resume`. The committee evaluation has no flag: it runs whenever an explored dataset is available."
+msgstr "I flag ``do_dataset_augmentation``, ``do_ab_initio_labelling``, ``do_training`` e ``do_exploration`` (ducj ``True`` di base) a distudin une fase pe prime iterazion. Dopo, etichetadure, adestrament e esplorazion a son simpri ativis e la aumentazion e je distudade. Distudant lis fasis si fâs partî une esecuzion di un dataset esistent o di potenziâi esistents; cjale :ref:`production-resume`. La valutazion dal comitât no à flag: e zire ogni volte che al è disponibil un dataset esplorât."
+
+#: ../../source/user_guide/loop_stages.rst:39
+msgid "Augment"
+msgstr "Aumentâ"
+
+#: ../../source/user_guide/loop_stages.rst:41
+msgid "A handful of input structures is not enough to train a potential that can be used in MD. The first stage, ``builder.dataset_augmentation``, therefore generates a much larger and more varied dataset from them: distorted copies, small clusters, slabs, larger cells and so on. Each method is switched by a ``do_*`` flag and has its own parameters, listed in the table."
+msgstr "Un pôcs di struturis di input no bastin par adestrâ un potenziâl che si pues doprâ in MD. La prime fase, ``builder.dataset_augmentation``, e gjenere duncje di chês un dataset une vore plui grant e variât: copiis distuartis, piçui cluster, slab, celis plui grandis e vie indevant. Ogni metodi al ven ativât di un flag ``do_*`` e al à i siei parametris, elencâts te tabele."
+
+#: ../../source/user_guide/loop_stages.rst:50
+msgid "Flag (default)"
+msgstr "Flag (predefinît)"
+
+#: ../../source/user_guide/loop_stages.rst:51
+msgid "Generates"
+msgstr "Al gjenere"
+
+#: ../../source/user_guide/loop_stages.rst:52
+msgid "Main parameters (default)"
+msgstr "Parametris principâi (predefinît)"
+
+#: ../../source/user_guide/loop_stages.rst:53
+msgid "``do_input`` (``True``)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:54
+msgid "the input structures themselves"
+msgstr "lis struturis di input stessis"
+
+#: ../../source/user_guide/loop_stages.rst:56
+msgid "``do_isolated`` (``True``)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:57
+msgid "isolated atoms of each species"
+msgstr "atoms isolâts di ogni specie"
+
+#: ../../source/user_guide/loop_stages.rst:59
+msgid "``do_rattle_strain_defects`` (``True``)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:60
+msgid "rattled, strained and defective copies"
+msgstr "copiis scjassadis, deformadis e cun difiets"
+
+#: ../../source/user_guide/loop_stages.rst:61
+msgid "``rsd.params.n_configs`` (50), ``rattle_fraction`` (0.3), ``max_compressive_strain`` (0.2), ``max_tensile_strain`` (0.6), ``frac_vacancies`` (0.3), ``vacancies_per_config`` (2)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:63
+msgid "``do_clusters`` (``True``)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:64
+msgid "small clusters"
+msgstr "piçui cluster"
+
+#: ../../source/user_guide/loop_stages.rst:65
+msgid "``clusters.n_clusters`` (20), ``max_atoms`` (10), ``interatomic_distance`` (1.5)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:66
+msgid "``do_slabs`` (``True``)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:67
+msgid "slabs"
+msgstr "slab superficiâi"
+
+#: ../../source/user_guide/loop_stages.rst:68
+msgid "``slabs.miller_indices`` (``[[1, 1, 1], [1, 1, 0], [1, 0, 0]]``), ``min_thickness`` (10), ``max_atoms`` (450)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:70
+msgid "``do_replication`` (``True``)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:71
+msgid "replicas of the cell"
+msgstr "replichis de cele"
+
+#: ../../source/user_guide/loop_stages.rst:72
+msgid "``replicate.min_dist`` (18), ``replicate.max_atoms`` (450)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:73
+msgid "``do_substitution`` (``True``)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:74
+msgid "structures with swapped species"
+msgstr "struturis cun speciis scambiadis"
+
+#: ../../source/user_guide/loop_stages.rst:75
+msgid "``substitution.switches_fraction`` (0.2), ``structures_fraction`` (0.2)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:76
+msgid "``do_alloys`` (``True``)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:77
+msgid "alloy structures"
+msgstr "struturis di leghe"
+
+#: ../../source/user_guide/loop_stages.rst:78
+msgid "``alloys.alloy_species`` (no default), ``fixed_species``, ``num_structures`` (100), ``fractions``"
+msgstr "``alloys.alloy_species`` (nissun predefinît), ``fixed_species``, ``num_structures`` (100), ``fractions``"
+
+#: ../../source/user_guide/loop_stages.rst:80
+msgid "``do_check_vacuum`` (``True``)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:81
+msgid "not a generator: enlarges the vacuum along non-periodic directions"
+msgstr "nol è un gjeneradôr: al slargje il vueit lungjo lis direzions no periodichis"
+
+#: ../../source/user_guide/loop_stages.rst:82
+msgid "``vacuum`` (15)"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:84
+msgid "Alloy generation is skipped, with a message in the report, unless ``alloys.alloy_species`` is set. As an example, to generate more distorted configurations, drop the slabs and generate alloys of B and N:"
+msgstr "La gjenerazion des leghis e ven saltade, cuntun messaç tal report, fin che nol è impostât ``alloys.alloy_species``. Par esempli, chi sot si gjenerin plui configurazions distuartis, si gjavin i slab e si gjenerin leghis di B e N:"
+
+#: ../../source/user_guide/loop_stages.rst:96
+msgid "The defaults target a production dataset and can take a long time on a small system. ``get_builder(..., demo=True)`` lowers the sizes for a first trial: slabs and alloys are switched off, and ``rsd.params.n_configs``, ``clusters.n_clusters``, ``clusters.max_atoms`` and ``replicate.max_atoms`` are set to 3, 3, 6 and 24."
+msgstr "I valôrs predefinîts a mirin a un dataset di produzion e a puedin domandâ tant timp suntun sisteme piçul. ``get_builder(..., demo=True)`` al ridûs lis dimensions par une prime prove: slab e leghis a vegnin distudâts, e ``rsd.params.n_configs``, ``clusters.n_clusters``, ``clusters.max_atoms`` e ``replicate.max_atoms`` a vegnin metûts a 3, 3, 6 e 24."
+
+#: ../../source/user_guide/loop_stages.rst:102
+msgid "Label"
+msgstr "Etichetâ"
+
+#: ../../source/user_guide/loop_stages.rst:104
+msgid "The structures produced by the augmentation, and later those selected by the committee, have no energies, forces or stresses yet. ``builder.ab_initio_labelling`` computes them with Quantum ESPRESSO, running one calculation for each unlabelled structure of the dataset. ``get_builder`` fills ``ab_initio_labelling.quantumespresso`` from ``abinitiolabelling_protocol`` and ``pseudo_family``. It is a ``PwBaseWorkChain`` builder, so any of its inputs can be changed as for any other Quantum ESPRESSO calculation, for example the smearing:"
+msgstr "Lis struturis produsudis de aumentazion, e dopo chês selezionadis dal comitât, no àn ancjemò energjiis, fuarcis o tensions. ``builder.ab_initio_labelling`` lis calcole cun Quantum ESPRESSO, fasint un calcul par ogni struture no etichetade dal dataset. ``get_builder`` al complete ``ab_initio_labelling.quantumespresso`` a partî di ``abinitiolabelling_protocol`` e ``pseudo_family``. Al è un builder di ``PwBaseWorkChain``, duncje ognidun dai siei input si pues cambiâlu come par cualsisei altri calcul di Quantum ESPRESSO, par esempli il smearing:"
+
+#: ../../source/user_guide/loop_stages.rst:119
+msgid "Two other inputs are ``group_label`` (calculations are added to this group; a group named ``ab_initio_labelling_<uuid>`` is created if it is not given) and ``batch_size`` (structures labelled per batch, default ``1000``). The calculations are run with ``tstress`` and ``tprnfor`` enabled."
+msgstr "Altris doi input a son ``group_label`` (i calcui a vegnin zontâts a chest grup; se nol ven dât, al ven creât un grup clamât ``ab_initio_labelling_<uuid>``) e ``batch_size`` (struturis etichetadis par lot, predefinît ``1000``). I calcui a zirin cun ``tstress`` e ``tprnfor`` ativâts."
+
+#: ../../source/user_guide/loop_stages.rst:125
+msgid "Train"
+msgstr "Adestrâ"
+
+#: ../../source/user_guide/loop_stages.rst:127
+msgid "``builder.training`` trains ``num_potentials`` independent potentials on the labelled dataset. They form the committee whose disagreement drives the selection of new structures, so at least two are needed. Before training, the labelled dataset is split into training, validation and test sets."
+msgstr "``builder.training`` al adestre ``num_potentials`` potenziâi indipendents sul dataset etichetât. A formin il comitât il cui disacuardi al guide la selezion di gnovis struturis, duncje a 'nd coventin almancul doi. Prime dal adestrament, il dataset etichetât al ven dividût in insiemis di adestrament, di validazion e di test."
+
+#: ../../source/user_guide/loop_stages.rst:131
+msgid "``training.num_potentials``"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:132
+msgid "Default ``2``."
+msgstr "Predefinît ``2``."
+
+#: ../../source/user_guide/loop_stages.rst:134
+msgid "``training.non_training_fraction``"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:135
+msgid "Fraction of the dataset kept out of training and split between validation and test sets. Default ``0.2``. Input structures, isolated atoms and single-atom configurations always go to the training set."
+msgstr "Frazion dal dataset tignude fûr dal adestrament e dividude tra i insiemis di validazion e di test. Predefinît ``0.2``. Lis struturis di input, i atoms isolâts e lis configurazions di un sôl atom a van simpri tal insiemi di adestrament."
+
+#: ../../source/user_guide/loop_stages.rst:139
+msgid "The inputs of the training engine itself sit under ``training.mace`` or ``training.meta``, matching ``training_engine``; the one for the other engine is left empty. For MACE:"
+msgstr "I input dal motôr di adestrament stes a stan sot di ``training.mace`` o ``training.meta``, daûr di ``training_engine``; chel dal altri motôr al reste vueit. Par MACE:"
+
+#: ../../source/user_guide/loop_stages.rst:151
+msgid "``postprocess_code`` is required for MACE. ``preprocess_code`` is read only if ``do_preprocess`` is ``True`` (default ``False``). For metatrain the config is ``training.meta.train.meta_config`` and there is no post-processing code. The choice of engine is described in :ref:`production-engine`."
+msgstr "``postprocess_code`` al è obligatori par MACE. ``preprocess_code`` al ven let dome se ``do_preprocess`` al è ``True`` (predefinît ``False``). Par metatrain la configurazion e je ``training.meta.train.meta_config`` e nol è nissun codiç di post-elaborazion. La sielte dal motôr e je descrite in :ref:`production-engine`."
+
+#: ../../source/user_guide/loop_stages.rst:158
+msgid "Explore"
+msgstr "Esplorâ"
+
+#: ../../source/user_guide/loop_stages.rst:160
+msgid "The training set only covers the configurations it contains, so the next question is where the potentials fail. ``builder.exploration`` runs LAMMPS molecular dynamics with one of the freshly trained potentials, starting from structures of the dataset, and samples frames from the trajectories; these are the candidates for labelling. The inputs below control what is simulated and how it is sampled."
+msgstr "L'insiemi di adestrament al cuvierç dome lis configurazions che al conten, e duncje la domande dopo e je dulà che i potenziâi a falin. ``builder.exploration`` al fâs zirâ dinamiche molecolâr LAMMPS cuntun dai potenziâi apene adestrâts, partint di struturis dal dataset, e al cjol fotograms des trajetoriis; chescj a son i candidâts pe etichetadure. I input chi sot a controlin ce che al ven simulât e cemût che al ven campionât."
+
+#: ../../source/user_guide/loop_stages.rst:166
+msgid "``params_list``"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:167
+msgid "List of MD runs. ``get_builder`` sets a single one: 300 K, zero pressure, ``nvt``, 50 steps of 0.001. ``generate_lammps_md_config`` builds a list from lists of temperatures, pressures, step counts and integration styles; every combination becomes one run:"
+msgstr "Liste des esecuzions MD. ``get_builder`` int impueste une sole: 300 K, pression zero, ``nvt``, 50 pas di 0.001. ``generate_lammps_md_config`` al costruìs une liste a partî di listis di temperaduris, pressions, numars di pas e stii di integrazion; ogni combinazion e devente une esecuzion:"
+
+#: ../../source/user_guide/loop_stages.rst:185
+msgid "The same ``dt`` has to be passed to the function and set as ``control.timestep``: the function uses it to set the thermostat and barostat damping times (100 and 1000 timesteps), and ``exploration.parameters[\"control\"][\"timestep\"]`` is required."
+msgstr "Il stes ``dt`` al à di jessi passât ae funzion e impostât come ``control.timestep``: la funzion lu dopre par impostâ i timps di smorzament dal termostat e dal barostat (100 e 1000 pas di timp), e ``exploration.parameters[\"control\"][\"timestep\"]`` al è obligatori."
+
+#: ../../source/user_guide/loop_stages.rst:189
+msgid "``sampling_time``, ``thermalization_time``"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:190
+msgid "Interval between extracted frames (default ``1.0``) and initial time discarded (default ``0.0``), in LAMMPS time units. Their sum must not exceed the shortest run, ``min(steps) * timestep``. ``get_builder`` sets ``sampling_time`` to ``0.01``, a fifth of its default run."
+msgstr "Interval tra i fotograms estrats (predefinît ``1.0``) e timp iniziâl scartât (predefinît ``0.0``), in unitâts di timp di LAMMPS. La lôr sume no à di superâ la esecuzion plui curte, ``min(steps) * timestep``. ``get_builder`` al impueste ``sampling_time`` a ``0.01``, un cuint de sô esecuzion predefinide."
+
+#: ../../source/user_guide/loop_stages.rst:195
+msgid "``potential_pair_style``"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:196
+msgid "The LAMMPS ``pair_style`` of the trained potentials. Default ``\"mace no_domain_decomposition\"``. A value the training engine cannot produce is replaced by that engine's default, and the change is written in the report. See :ref:`production-engine`."
+msgstr "Il ``pair_style`` LAMMPS dai potenziâi adestrâts. Predefinît ``\"mace no_domain_decomposition\"``. Un valôr che il motôr di adestrament nol pues produsi al ven sostituît cul valôr predefinît di chel motôr, e il cambiament al ven scrit tal report. Cjale :ref:`production-engine`."
+
+#: ../../source/user_guide/loop_stages.rst:200
+msgid "``protocol``"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:201
+msgid "``None`` or ``\"vdw_d2\"``, set by the ``md_protocol`` argument of ``get_builder``. With ``\"vdw_d2\"`` the potential is combined with a DFT-D2 dispersion correction through ``pair_style hybrid/overlay``."
+msgstr "``None`` o ``\"vdw_d2\"``, impostât dal argoment ``md_protocol`` di ``get_builder``. Cun ``\"vdw_d2\"`` il potenziâl al ven combinât cuntune corezion di dispersion DFT-D2 traviers di ``pair_style hybrid/overlay``."
+
+#: ../../source/user_guide/loop_stages.rst:205
+msgid "``check_vacuum``"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:206
+msgid "Default ``True``. Enlarges the vacuum along non-periodic directions of the extracted frames."
+msgstr "Predefinît ``True``. Al slargje il vueit lungjo lis direzions no periodichis dai fotograms estrats."
+
+#: ../../source/user_guide/loop_stages.rst:208
+msgid "Which structures the MD starts from is chosen at the top level of the builder: ``random_input_structures_lammps`` (default ``True``) and ``num_random_structures_lammps`` (default ``20``) select how many structures of the dataset are used as MD starting points, skipping single atoms. A fixed set can be given instead with ``lammps_input_structures``, a ``PESData`` node, and ``random_input_structures_lammps = Bool(False)``."
+msgstr "Lis struturis di partence de MD si lis sielç al nivel plui alt dal builder: ``random_input_structures_lammps`` (predefinît ``True``) e ``num_random_structures_lammps`` (predefinît ``20``) a stabilissin cuantis struturis dal dataset a vegnin dopradis come pont di partence de MD, lassant fûr i atoms singui. Al so puest si pues dâ un insiemi fis cun ``lammps_input_structures``, un grop ``PESData``, e ``random_input_structures_lammps = Bool(False)``."
+
+#: ../../source/user_guide/loop_stages.rst:214
+msgid "LAMMPS settings can be passed through ``builder.exploration.md.lammps.settings``, for example ``additional_cmdline_params`` for GPU options, and the structure and thermo output parameters through ``builder.exploration.parameters``."
+msgstr "Lis impostazions di LAMMPS si puedin passâ traviers di ``builder.exploration.md.lammps.settings``, par esempli ``additional_cmdline_params`` pes opzions GPU, e i parametris di output de struture e des grandecis termodinamichis traviers di ``builder.exploration.parameters``."
+
+#: ../../source/user_guide/loop_stages.rst:219
+msgid "Evaluate"
+msgstr "Valutâ"
+
+#: ../../source/user_guide/loop_stages.rst:221
+msgid "The last stage decides which of the explored frames are worth labelling. ``builder.committee_evaluation`` evaluates the explored frames, and the labelled dataset, with every potential of the committee. The deviation among the members is a measure of how uncertain the committee is on a frame. Frames whose deviation is above the thresholds are added to the dataset and labelled in the next loop."
+msgstr "La ultime fase e decît cuai dai fotograms esplorâts che a meretin di jessi etichetâts. ``builder.committee_evaluation`` al valute i fotograms esplorâts, e il dataset etichetât, cun ogni potenziâl dal comitât. La deviazion tra i membris e je une misure di trop incert che al è il comitât suntun fotogram. I fotograms cuntune deviazion parsore dai limits a vegnin zontâts al dataset e etichetâts tal cicli sucessîf."
+
+#: ../../source/user_guide/loop_stages.rst:236
+msgid "``thr_energy``, ``thr_forces``, ``thr_stress``"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:237
+msgid "Defaults ``0.001``, ``0.1`` and ``0.001``. A frame is selected if any of its energy, forces or stress deviations exceeds the corresponding threshold. The thresholds are expressed in units of the error: at each loop they are multiplied by the slope of a linear fit, through the origin, of the committee deviation against the RMSE on the labelled dataset (the calibration shown by ``plot_error_calibration``)."
+msgstr "Predefinîts ``0.001``, ``0.1`` e ``0.001``. Un fotogram al ven selezionât se une cualsisei des sôs deviazions di energjie, fuarcis o tension e supere il limit corispondent. I limits a son esprimûts in unitâts dal erôr: a ogni cicli a vegnin moltiplicâts pe pendence di un fit lineâr, passant pe origjin, de deviazion dal comitât in funzion dal RMSE sul dataset etichetât (la calibrazion mostrade di ``plot_error_calibration``)."
+
+#: ../../source/user_guide/loop_stages.rst:243
+msgid "``max_selected_frames``"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:244
+msgid "Maximum number of frames selected per loop. Default ``1000``. If more frames pass the thresholds, a random subset is kept."
+msgstr "Numar massim di fotograms selezionâts par cicli. Predefinît ``1000``. Se a passin i limits plui fotograms, si 'nt ten un sotinsiemi casuâl."
+
+#: ../../source/user_guide/loop_stages.rst:247
+msgid "The committee evaluation is run as a ``PortableCode`` with no computer of its own, so ``committee_evaluation.metadata.computer`` has to be set together with ``committee_evaluation.code``."
+msgstr "La valutazion dal comitât e zire come ``PortableCode`` cence un computer so, duncje ``committee_evaluation.metadata.computer`` al à di jessi impostât adun cun ``committee_evaluation.code``."
+
+#: ../../source/user_guide/loop_stages.rst:251
+msgid "Outputs"
+msgstr "Output"
+
+#: ../../source/user_guide/loop_stages.rst:253
+msgid "When the workflow finishes, its main results are available as outputs of the process node."
+msgstr "Cuant che il flus di lavôr al finìs, i siei risultâts principâi a son disponibii come output dal grop dal procès."
+
+#: ../../source/user_guide/loop_stages.rst:255
+msgid "``dataset``"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:256
+msgid "The final dataset: labelled structures plus the structures selected in the last loop."
+msgstr "Il dataset finâl: lis struturis etichetadis plui lis struturis selezionadis tal ultin cicli."
+
+#: ../../source/user_guide/loop_stages.rst:258
+msgid "``models_lammps``, ``models_ase``"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:259
+msgid "The last committee, compiled for LAMMPS and for ASE. For MACE, ``models_lammps_mliap`` is also present when the post-processing step produced the ``mliap`` format."
+msgstr "L'ultin comitât, compilât par LAMMPS e par ASE. Par MACE al è ancje ``models_lammps_mliap``, cuant che il pas di post-elaborazion al à produsût il formât ``mliap``."
+
+#: ../../source/user_guide/loop_stages.rst:262
+msgid "``checkpoints``"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:263
+msgid "Last checkpoints of the trained potentials."
+msgstr "Ultins checkpoint dai potenziâi adestrâts."
+
+#: ../../source/user_guide/loop_stages.rst:265
+msgid "``RMSE``"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:266
+msgid "RMSE on the labelled dataset for each loop."
+msgstr "RMSE sul dataset etichetât par ogni cicli."
+
+#: ../../source/user_guide/loop_stages.rst:268
+msgid "``explored_dataset``"
+msgstr ""
+
+#: ../../source/user_guide/loop_stages.rst:269
+msgid "Frames sampled in the last successful exploration."
+msgstr "Fotograms campionâts te ultime esplorazion lade a bon fin."

@@ -1,0 +1,22 @@
+{#- Language switcher. Read the Docs serves the languages side by side under
+    /<lang>/<version>/. A local build nests each translation inside the English
+    site, so `root` is the path back up to the English root and every other
+    language hangs off it. -#}
+{%- if doc_languages | length > 1 %}
+{%- set up = "../" * pagename.count("/") %}
+{%- set root = up ~ ("" if language == "en" else "../") %}
+<nav class="lang-switcher" aria-label="{{ _('Language') }}">
+  {%- for code, names in doc_languages.items() %}
+  {%- if on_rtd %}
+  {%- set href = "/" ~ code ~ "/" ~ rtd_version ~ "/" ~ pagename ~ ".html" %}
+  {%- else %}
+  {%- set href = root ~ ("" if code == "en" else code ~ "/") ~ pagename ~ ".html" %}
+  {%- endif %}
+  {%- if code == language %}
+  <span class="lang-switcher__item lang-switcher__item--current" title="{{ names[1] }}" aria-current="true">{{ names[0] }}</span>
+  {%- else %}
+  <a class="lang-switcher__item" href="{{ href }}" title="{{ names[1] }}">{{ names[0] }}</a>
+  {%- endif %}
+  {%- endfor %}
+</nav>
+{%- endif %}

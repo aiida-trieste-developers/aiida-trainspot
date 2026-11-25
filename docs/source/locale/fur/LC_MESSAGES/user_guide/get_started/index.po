@@ -1,0 +1,110 @@
+# Friulian translation of the AiiDA-TrainsPot documentation.
+msgid ""
+msgstr ""
+"Project-Id-Version: AiiDA-TrainsPot\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: fur\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+
+#: ../../source/user_guide/get_started/index.rst:5
+msgid "Get started"
+msgstr "Par scomençâ"
+
+#: ../../source/user_guide/get_started/index.rst:7
+msgid "This page runs a first, small active-learning loop on graphene. Starting from a single graphene cell, the workflow builds a larger set of structures by rattling, straining and cutting it, and computes their energies, forces and stresses with Quantum ESPRESSO. It then trains a committee of MACE potentials on these labelled structures and uses them to run short molecular dynamics (MD) simulations with LAMMPS. Where the members of the committee disagree on a frame of those trajectories, the potentials are unreliable, so those frames are labelled with Quantum ESPRESSO, added to the training set, and the cycle starts again. The aim of this run is not a useful potential but a check that the installation, the codes and the scheduler settings work together, and a first look at how the workflow is driven."
+msgstr "Cheste pagjine e fâs zirâ un prin, piçul cicli di aprendiment atîf sul grafen. Partint di une sole cele di grafen, il flus di lavôr al costruìs un insiemi plui grant di struturis scjassantle, deformantle e taiantle, e al calcole lis lôr energjiis, fuarcis e tensions cun Quantum ESPRESSO. Dopo al adestre un comitât di potenziâi MACE su chestis struturis etichetadis e ju dopre par fâ zirâ curtis simulazions di dinamiche molecolâr (MD) cun LAMMPS. Là che i membris dal comitât no son dacuardi suntun fotogram di chês trajetoriis, i potenziâi no son afidabii: chei fotograms a vegnin alore etichetâts cun Quantum ESPRESSO, zontâts al insiemi di adestrament, e il cicli al tache di gnûf. Il fin di cheste esecuzion nol è un potenziâl util, ma une verifiche che la instalazion, i codiçs e lis impostazions dal scheduler a funzionin insiemi, e une prime cjalade a cemût che si comande il flus di lavôr."
+
+#: ../../source/user_guide/get_started/index.rst:17
+msgid "The whole run is one Python script, `examples/graphene/get_started.py <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/get_started.py>`_, which reads ``gr8x8.xyz`` and ``mace_config.yml`` from its own directory. After filling in the placeholders marked ``<...>`` and the cluster settings it runs as is. The sections below go through it in order."
+msgstr "Dute la esecuzion e je un sôl script Python, `examples/graphene/get_started.py <https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/get_started.py>`_, che al lei ``gr8x8.xyz`` e ``mace_config.yml`` de sô stesse cartele. Dopo vê completât i cjamps segnâts ``<...>`` e lis impostazions dal cluster, al zire cussì come che al è. Lis sezions chi sot lu passin in ordin."
+
+#: ../../source/user_guide/get_started/index.rst:23
+msgid "You need :ref:`AiiDA-TrainsPot installed <installation>`, an AiiDA profile with the daemon running, and a registered code for each of Quantum ESPRESSO (``pw.x``), LAMMPS, MACE training, MACE post-processing and committee evaluation, as described in the installation page."
+msgstr "Ti covente :ref:`AiiDA-TrainsPot instalât <installation>`, un profîl AiiDA cul demoni in esecuzion e un codiç regjistrât par ognidun di chescj: Quantum ESPRESSO (``pw.x``), LAMMPS, adestrament MACE, post-elaborazion MACE e valutazion dal comitât, come che al è descrit te pagjine di instalazion."
+
+#: ../../source/user_guide/get_started/index.rst:28
+msgid "Codes and cluster settings"
+msgstr "Codiçs e impostazions dal cluster"
+
+#: ../../source/user_guide/get_started/index.rst:30
+msgid "AiiDA stores everything it knows (codes, computers, calculations, results) in a database selected by a *profile*, so the script starts by loading it. Each executable you registered is an AiiDA *code*, identified by a label of the form ``<code>@<computer>``, where the *computer* is the remote machine it runs on. The labels below are placeholders for your own. The committee evaluation code is a ``PortableCode``: its files are stored in AiiDA and uploaded with each calculation, so it is not tied to a computer and has to be given one explicitly later."
+msgstr "AiiDA al ten dut ce che al sa (codiçs, computer, calcui, risultâts) intune base di dâts selezionade di un *profîl*, e duncje il script al scomence cjariantlu. Ogni eseguibil che tu âs regjistrât al è un *codiç* AiiDA, identificât di une etichete de forme ``<code>@<computer>``, dulà che il *computer* e je la machine rimote dulà che al zire. Lis etichetis chi sot a son dome di esempli: met lis tôs. Il codiç pe valutazion dal comitât al è un ``PortableCode``: i siei file a son tignûts in AiiDA e cjariâts sù cun ogni calcul, duncje nol è leât a un computer e i va dât un in mût esplicit plui indevant."
+
+#: ../../source/user_guide/get_started/index.rst:42
+msgid "Every calculation is then submitted to the cluster's scheduler, which will refuse a job without an account, a partition, a quality of service (QoS), and, on a GPU machine, a GPU request, and which needs a wall time and a memory limit. In AiiDA these are the ``metadata.options`` of each calculation. They are the same for every code here, so the script defines them once and applies them with a small function. The values are those of Leonardo (Booster) at CINECA and have to be replaced with the ones of your cluster; :ref:`production-scheduler` explains them further."
+msgstr "Ogni calcul al ven po mandât al scheduler dal cluster, che al refude un lavôr cence un account, une partizion, une cualitât dal servizi (QoS) e, suntune machine cun GPU, une richieste di GPU, e che al à bisugne di un wall time e di un limit di memorie. In AiiDA chestis a son lis ``metadata.options`` di ogni calcul. Achì a son lis stessis par ducj i codiçs, duncje il script lis definìs une volte sole e lis aplighe cuntune piçule funzion. I valôrs a son chei di Leonardo (Booster) al CINECA e a van sostituîts cun chei dal to cluster; :ref:`production-scheduler` ju spieghe miôr."
+
+#: ../../source/user_guide/get_started/index.rst:55
+msgid "Dataset and builder"
+msgstr "Dataset e builder"
+
+#: ../../source/user_guide/get_started/index.rst:57
+msgid "The starting point is a ``PESData`` node, the dataset type of the workflow. It is created from a list of ASE structures, here the one read from ``gr8x8.xyz``."
+msgstr "Il pont di partence al è un grop ``PESData``, il gjenar di dataset dal flus di lavôr. Al ven creât di une liste di struturis ASE, achì chê lete di ``gr8x8.xyz``."
+
+#: ../../source/user_guide/get_started/index.rst:65
+msgid "AiiDA workflows are configured through a *builder*, an object whose attributes are the inputs of the workflow, organised in namespaces. ``TrainsPotWorkChain.get_builder()`` returns one with the ab initio labelling and the exploration already filled in: the Quantum ESPRESSO inputs come from the protocol (``fast`` here) and the pseudopotential family, and a default MD run is set. Training and committee evaluation are left to the user. ``demo=True`` sets small, reasonable values for a test run; the details are in :ref:`loop-stages`. ``max_loops`` is the maximum number of iterations of the loop."
+msgstr "I flus di lavôr AiiDA si configurin traviers di un *builder*, un ogjet i cui atribûts a son i input dal flus di lavôr, organizâts in namespace. ``TrainsPotWorkChain.get_builder()`` al torne un builder cu la etichetadure ab initio e la esplorazion za completadis: i input di Quantum ESPRESSO a vegnin dal protocol (``fast`` achì) e de famee di pseudopotenziâi, e e ven impostade une esecuzion MD predefinide. L'adestrament e la valutazion dal comitât a restin al utent. ``demo=True`` al impueste valôrs piçui e resonevui par une esecuzion di prove; i detais a son in :ref:`loop-stages`. ``max_loops`` al è il numar massim di iterazions dal cicli."
+
+#: ../../source/user_guide/get_started/index.rst:79
+msgid "Training and scheduler settings"
+msgstr "Impostazions di adestrament e dal scheduler"
+
+#: ../../source/user_guide/get_started/index.rst:81
+msgid "The default training engine is MACE. It needs its configuration, a dictionary read here from ``mace_config.yml``, and two codes: the one that trains and the one that converts the trained model for use in LAMMPS. The ``prepend_text`` option adds lines to the job script before the executable runs; the one used here, taken from ``examples/graphene/run_atp.py``, makes the training run through ``srun``. By default two potentials are trained, which form the committee."
+msgstr "Il motôr di adestrament predefinît al è MACE. Al à bisugne de sô configurazion, un dizionari che achì al ven let di ``mace_config.yml``, e di doi codiçs: chel che al adestre e chel che al convertìs il model adestrât par doprâlu in LAMMPS. La opzion ``prepend_text`` e zonte riis al script dal lavôr prime che al partissi l'eseguibil; chê doprade achì, cjolte di ``examples/graphene/run_atp.py``, e fâs zirâ l'adestrament traviers di ``srun``. Di base a vegnin adestrâts doi potenziâi, che a formin il comitât."
+
+#: ../../source/user_guide/get_started/index.rst:92
+msgid "Each calculation that runs on the cluster has its own ``metadata.options``, reached through the corresponding namespace of the builder. To keep this first script short, the same settings are applied to all of them, Quantum ESPRESSO (run under MPI, hence ``withmpi``), MACE training and LAMMPS, changing only wall time and memory; in a real run each code can get its own partition, resources or GPU request."
+msgstr "Ogni calcul che al zire sul cluster al à lis sôs ``metadata.options``, che si rivin traviers dal namespace corispondent dal builder. Par tignî curt chest prin script, lis stessis impostazions a vegnin aplicadis a ducj, Quantum ESPRESSO (eseguît sot MPI, di li ``withmpi``), adestrament MACE e LAMMPS, cambiant nome wall time e memorie; intune esecuzion vere ogni codiç al pues vê la sô partizion, lis sôs risorsis o la sô richieste di GPU."
+
+#: ../../source/user_guide/get_started/index.rst:104
+msgid "Committee evaluation"
+msgstr "Valutazion dal comitât"
+
+#: ../../source/user_guide/get_started/index.rst:106
+msgid "After each exploration, the committee evaluation runs all the potentials on the sampled frames and measures how much they disagree. As it is a ``PortableCode``, it needs the computer it will run on, besides the same scheduler settings."
+msgstr "Dopo ogni esplorazion, la valutazion dal comitât e fâs zirâ ducj i potenziâi sui fotograms campionâts e e misure trop che no son dacuardi. Stant che e je un ``PortableCode``, i covente il computer dulà che e zirarà, in plui des stessis impostazions dal scheduler."
+
+#: ../../source/user_guide/get_started/index.rst:116
+msgid "Submit and launch"
+msgstr "Mandâ e fâ partî"
+
+#: ../../source/user_guide/get_started/index.rst:118
+msgid "Submitting hands the workflow to the AiiDA daemon, a background process that runs the workflow and talks to the cluster, so the script returns immediately and the run continues without it."
+msgstr "Mandâ il flus di lavôr al vûl dî consegnâlu al demoni di AiiDA, un procès in sotfont che al fâs zirâ il flus di lavôr e al fevele cul cluster; cussì il script al torne subit e la esecuzion e va indevant cence di lui."
+
+#: ../../source/user_guide/get_started/index.rst:125
+msgid "The script is launched with ``verdi run get_started.py``, which loads the profile and runs it. Plain ``python get_started.py`` works as well, because the script calls ``load_profile()``. In both cases the daemon has to be running (``verdi daemon status``)."
+msgstr "Il script si lu fâs partî cun ``verdi run get_started.py``, che al cjarie il profîl e lu eseguìs. Al funzione ancje il sempliç ``python get_started.py``, parcè che il script al clame ``load_profile()``. Tai doi câs il demoni al à di jessi in esecuzion (``verdi daemon status``)."
+
+#: ../../source/user_guide/get_started/index.rst:130
+msgid "Following the run"
+msgstr "Stâ daûr ae esecuzion"
+
+#: ../../source/user_guide/get_started/index.rst:132
+msgid "The workflow and every calculation it spawns are AiiDA processes, which can be inspected from the command line using the PK printed by the script."
+msgstr "Il flus di lavôr e ogni calcul che al gjenere a son procès AiiDA, che si puedin controlâ de rie di comant cul PK stampât dal script."
+
+#: ../../source/user_guide/get_started/index.rst:141
+msgid "``status`` shows which stage the run is in, and ``report`` lists, for each loop, how many frames were selected for labelling."
+msgstr "``status`` al mostre in ce fase che e je la esecuzion, e ``report`` al elenche, par ogni cicli, trops fotograms che a son stâts selezionâts pe etichetadure."
+
+#: ../../source/user_guide/get_started/index.rst:145
+msgid "Results"
+msgstr "Risultâts"
+
+#: ../../source/user_guide/get_started/index.rst:147
+msgid "Once at least one committee evaluation has finished, the results can be plotted from a Python session or a notebook. ``plot_parity`` compares the predicted energies, forces and stresses with the Quantum ESPRESSO values for each loop, and shows how the errors evolve from one loop to the next."
+msgstr "Apene che almancul une valutazion dal comitât e je finide, si puedin fâ i grafics dai risultâts di une session Python o di un notebook. ``plot_parity`` al confronte lis energjiis, lis fuarcis e lis tensions dadis dai potenziâi cui valôrs di Quantum ESPRESSO par ogni cicli, e al mostre cemût che a cambiin i erôrs di un cicli a chel dopo."
+
+#: ../../source/user_guide/get_started/index.rst:159
+msgid "Next"
+msgstr "Indevant"
+
+#: ../../source/user_guide/get_started/index.rst:161
+msgid ":doc:`../loop_stages` describes what each stage does and which settings are worth changing. :doc:`../production_runs` covers cluster settings, the choice of training engine, longer runs, resuming and further plots."
+msgstr ":doc:`../loop_stages` al descrîf ce che e fâs ogni fase e cualis impostazions che al vâl la pene cambiâ. :doc:`../production_runs` al trate lis impostazions dal cluster, la sielte dal motôr di adestrament, lis esecuzions plui lungjis, la ripartence e altris grafics."

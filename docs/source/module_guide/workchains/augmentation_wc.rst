@@ -4,8 +4,8 @@ Dataset Augmentation WorkChain
 .. toctree::
    :maxdepth: 1
 
-.. currentmodule:: aiida_trains_pot
+.. currentmodule:: aiida_trainspot
 
 **Dataset Augmentation WorkChain**
   .. aiida-workchain:: DatasetAugmentationWorkChain
-    :module: aiida_trains_pot.datasetaugmentation.datasetaugmentation_wc.datasetaugmentation_wc
+    :module: aiida_trainspot.workflows.dataset_augmentation
