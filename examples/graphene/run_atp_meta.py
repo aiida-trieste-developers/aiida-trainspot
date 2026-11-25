@@ -145,8 +145,8 @@ input_structures = PESData([read(os.path.join(script_dir, "gr8x8.xyz"))])
 ###############################################
 
 builder = TrainsPotWorkChain.get_builder(
-    abinitiolabeling_code=QE_code,
-    abinitiolabeling_protocol="fast",
+    abinitiolabelling_code=QE_code,
+    abinitiolabelling_protocol="fast",
     pseudo_family="SSSP/1.3/PBE/efficiency",
     md_code=LAMMPS_code,
     # md_protocol               = 'vdw_d2',
@@ -328,9 +328,9 @@ builder.exploration.md.lammps.metadata.options.qos = LAMMPS_machine["qos"]
 builder.exploration.md.lammps.metadata.options.custom_scheduler_commands = f"#SBATCH --gres=gpu:{LAMMPS_machine['gpu']}"
 
 # How often to extract frames from the MD trajectory (in LAMMPS time units)
-builder.frame_extraction.sampling_time = Float(0.02)
+builder.exploration.sampling_time = Float(0.02)
 # Thermalization time (in LAMMPS units). Frames in thermalization_time are not considered
-builder.frame_extraction.thermalization_time = Float(0.0)
+builder.exploration.thermalization_time = Float(0.0)
 
 
 ###############################################
