@@ -25,8 +25,7 @@ dependencies = [
     "ase==3.29.0",
     "numba",
     "aiida-quantumespresso",
-    "aiida-lammps @ git+https://github.com/aiida-trieste-developers/aiida-lammps@ba554141e2ccb38de2b29a8f71427d115b74785a",
-
+    "aiida-lammps",
     "h5py"
 ]
 
@@ -41,7 +40,7 @@ Source = "https://github.com/aiida-trieste-developers/aiida-trains-pot"
 "trainspot.training"         = "aiida_trainspot.workflows.training:TrainingWorkChain"
 "trainspot.exploration"      = "aiida_trainspot.workflows.exploration:ExplorationWorkChain"
 "trainspot.lammps_md"        = "aiida_trainspot.workflows.lammps_md:LammpsMdWorkChain"
-"trainspot.workflow"         = "aiida_trainspot.workflows.trainspot_workflow:TrainsPotWorkChain"
+"trainspot.workflow"         = "aiida_trainspot.workflows.trainspot:TrainsPotWorkChain"
 
 
 
@@ -63,6 +62,8 @@ portable_codes_installation = "aiida_trainspot.utils.install_portable_codes:main
 [project.optional-dependencies]
 mace = ["aiida-mace"]
 metatrain = ["aiida-metatrain"]
+nequip = ["aiida-nequip"]
+deepmd = ["aiida-deepmd"]
 docs = [
     "aiida-core~=2.5",
     "docutils",
@@ -71,11 +72,11 @@ docs = [
     "sphinx-book-theme",
     "sphinx-click",
     "sphinxcontrib-contentui",
-    "sphinxcontrib-details-directive",
     "furo",
     "markupsafe"
 ]
-all = ["mace", "metatrain", "docs"]
+# Self-references: bare names here would resolve to unrelated PyPI projects.
+all = ["aiida-trainspot[mace,metatrain,nequip,deepmd,docs]"]
 
 [tool.flit.module]
 name = "aiida_trainspot"

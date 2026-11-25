@@ -417,11 +417,21 @@ class TrainsPotWorkChain(WorkChain):
         pseudo_family=None,
         md_protocol=None,
         dft_engine_entry_point=None,
+        demo=False,
         **kwargs,
     ):
         """Return a builder prepopulated with protocol defaults."""
         builder = super().get_builder(**kwargs)
         builder.dataset = dataset
+
+        # ---------- Dataset augmentation ----------
+        if demo:
+            builder.dataset_augmentation.do_slabs = Bool(False)
+            builder.dataset_augmentation.do_alloys = Bool(False)
+            builder.dataset_augmentation.rsd.params.n_configs = Int(3)
+            builder.dataset_augmentation.clusters.n_clusters = Int(3)
+            builder.dataset_augmentation.clusters.max_atoms = Int(6)
+            builder.dataset_augmentation.replicate.max_atoms = Int(24)
 
         # ---------- Quantum ESPRESSO ----------
         qe_protocol = abinitiolabelling_protocol or "stringent"
@@ -452,15 +462,19 @@ class TrainsPotWorkChain(WorkChain):
 
         builder.exploration.md.lammps.code = md_code
 
+        default_steps = 50
+        default_timestep = 0.001
         builder.exploration.params_list = generate_lammps_md_config(
             temperatures=[300],
             pressures=[0.0],
-            steps=[50],
+            steps=[default_steps],
             styles=["nvt"],
+            dt=default_timestep,
         )
 
         builder.exploration.protocol = md_protocol
-        builder.exploration.parameters = Dict({"control": {"timestep": 0.001}})
+        builder.exploration.parameters = Dict({"control": {"timestep": default_timestep}})
+        builder.exploration.sampling_time = Float(default_steps * default_timestep / 5)
 
         return builder
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Committee evaluation of a set of potentials against reference datasets, for MACE/META/NEQUIP alike.
+"""Committee evaluation of a set of potentials against reference datasets, for MACE/META/NEQUIP/DEEPMD alike.
 
 Run without srun/SLURM at all, it just falls back to a single process on one device.
 """
@@ -517,7 +517,7 @@ def mace_evaluate(models, atoms_list, device, batch_size, log_freq=100):
 
 
 # --------------------------------------------------------------------------------------------------
-# META/NEQUIP backend: plain ASE Calculator, one structure at a time.
+# META/NEQUIP/DEEPMD backend: plain ASE Calculator, one structure at a time.
 # --------------------------------------------------------------------------------------------------
 
 
@@ -533,6 +533,13 @@ def nequip_load(potential_files, device):
     from nequip.integrations.ase import NequIPCalculator
 
     return [NequIPCalculator.from_compiled_model(compile_path=pot, device=device) for pot in potential_files]
+
+
+def deepmd_load(potential_files, device):  # noqa: ARG001
+    """Load committee members as DeePMD-kit `DP` ASE calculators (frozen `.pth` files)."""
+    from deepmd.calculator import DP
+
+    return [DP(model=pot) for pot in potential_files]
 
 
 def ase_calculator_evaluate(models, atoms_list, device, batch_size, log_freq=100):  # noqa: ARG001
@@ -569,6 +576,7 @@ BACKENDS = {
     "MACE": (mace_load, mace_evaluate),
     "META": (metatomic_load, ase_calculator_evaluate),
     "NEQUIP": (nequip_load, ase_calculator_evaluate),
+    "DEEPMD": (deepmd_load, ase_calculator_evaluate),
 }
 
 

@@ -876,11 +876,13 @@ class DatasetAugmentationWorkChain(WorkChain):
             if inputs["rsd"]["params"]["vacancies_per_config"] < 0:
                 return "vacancies_per_config must be non-negative"
 
-        if inputs["do_alloys"]:
-            if "alloy_species" not in inputs["alloys"] or len(inputs["alloys"]["alloy_species"]) == 0:
-                return "alloy_species must be specified when do_alloys is True"
-            if inputs["alloys"]["num_structures"] < 1:
-                return "num_structures must be at least 1"
+        # `do_alloys` defaults to True, but `alloy_species` has no default of its own -- there is
+        # no reasonable one to pick (which species to substitute in is specific to each dataset).
+        # An unset `alloy_species` therefore isn't a validation error: `setup()` treats it as "no
+        # alloys wanted" and reports why, rather than every default-only builder failing outright.
+        has_alloy_species = "alloy_species" in inputs["alloys"] and len(inputs["alloys"]["alloy_species"]) > 0
+        if inputs["do_alloys"] and has_alloy_species and inputs["alloys"]["num_structures"] < 1:
+            return "num_structures must be at least 1"
 
     def setup(self):
         """Setup workchain."""
@@ -889,7 +891,18 @@ class DatasetAugmentationWorkChain(WorkChain):
             self.ctx.vacuum = self.inputs.vacuum
         else:
             self.ctx.vacuum = Float(0)
-        if self.inputs.do_alloys:
+
+        self.ctx.do_alloys = bool(self.inputs.do_alloys)
+        if self.ctx.do_alloys and not (
+            "alloy_species" in self.inputs.alloys and len(self.inputs.alloys.alloy_species) > 0
+        ):
+            self.ctx.do_alloys = False
+            self.report(
+                "do_alloys is True but alloys.alloy_species was not set -- skipping alloy "
+                "generation. Set alloys.alloy_species to a list of species to enable it."
+            )
+
+        if self.ctx.do_alloys:
             self.ctx.alloys_fractions = []
             if "fractions" in self.inputs.alloys:
                 self.ctx.alloys_fractions = self.inputs.alloys.fractions
@@ -961,7 +974,7 @@ class DatasetAugmentationWorkChain(WorkChain):
                 self.inputs.substitution.structures_fraction,
                 **datasets_to_substitute,
             )["substituted_structures"]
-        if self.inputs.do_alloys:
+        if self.ctx.do_alloys:
             datasets_for_alloys = {}
             if self.inputs.do_input:
                 datasets_for_alloys["input_structures"] = dataset["input_structures"]

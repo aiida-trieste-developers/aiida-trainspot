@@ -1,6 +1,6 @@
 {
     "_doc": {
-        "training_engine": "List of TrainsPotWorkChain.training_engine values (MACE/META/NEQUIP) whose postprocess step can produce this pair_style.",
+        "training_engine": "List of TrainsPotWorkChain.training_engine values (MACE/META/NEQUIP/DEEPMD) whose postprocess step can produce this pair_style.",
         "base_pair_style": "LAMMPS pair_style string. Also used, unchanged, as the hybrid/overlay sub-style (with its own args) when combined with the vdw_d2 protocol, and as the key looked up in aiida-lammps' own lammps_potentials.json to find the potential's filename.",
         "pair_coeff": "Which token recipe (see _PAIR_COEFF_TOKENS in potential_engines.py: filename_symbols / symbols / atomic_numbers) builds the 'pair_coeff * * ...' line. Omit entirely if aiida-lammps' own read_from_file default already handles it.",
         "style_options": "Optional format string (with a {filename} placeholder) for potential_style_options, the extra text placed on the pair_style line itself. Omit if this pair_style needs none.",
@@ -28,6 +28,13 @@
         "base_pair_style": "allegro",
         "pair_coeff": "filename_symbols",
         "_comment": "Same training_engine as nequip: aiida-trainspot doesn't distinguish an 'ALLEGRO' training_engine, both come from the nequip.base training workflow."
+    },
+    "deepmd": {
+        "training_engine": ["DEEPMD"],
+        "base_pair_style": "deepmd",
+        "pair_coeff": "symbols",
+        "style_options": "{filename}",
+        "_comment": "LAMMPS syntax is 'pair_style deepmd <file.pth>' + 'pair_coeff * * <type_map names>'; needs LAMMPS built with the DeePMD-kit PyTorch backend."
     },
     "mliap": {
         "training_engine": ["MACE", "NEQUIP"],

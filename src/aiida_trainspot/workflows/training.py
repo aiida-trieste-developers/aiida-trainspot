@@ -2,8 +2,9 @@
 
 import itertools
 import random
+import warnings
 
-from aiida.common.exceptions import MissingEntryPointError
+from aiida.common.exceptions import LoadingEntryPointError, MissingEntryPointError
 from aiida.engine import WorkChain, append_, calcfunction
 from aiida.orm import Bool, Float, FolderData, Int, Str
 from aiida.plugins import WorkflowFactory
@@ -12,16 +13,28 @@ from aiida_trainspot.data.pesdata import PESData
 
 
 def _try_workflow_factory(entry_point):
-    """Resolve a workflow entry point, returning None if its package is not installed."""
+    """Resolve a workflow entry point, returning None if its package is not installed or fails to load.
+
+    A training engine plugin that is installed but broken (e.g. incompatible with this version) only
+    disables that engine, with a warning, instead of making every engine unusable.
+    """
     try:
         return WorkflowFactory(entry_point)
     except MissingEntryPointError:
+        return None
+    except LoadingEntryPointError as exception:
+        warnings.warn(
+            f"Training engine plugin `{entry_point}` is installed but failed to load, so it is disabled: "
+            f"{str(exception).strip().splitlines()[-1]}",
+            stacklevel=2,
+        )
         return None
 
 
 MetaWorkChain = _try_workflow_factory("metatrain.base")
 MaceWorkChain = _try_workflow_factory("mace.base")
 NequipWorkChain = _try_workflow_factory("nequip.base")
+DeepmdWorkChain = _try_workflow_factory("deepmd.base")
 
 DEFAULT_NON_TRAIN_FRAC = Float(0.2)
 DEFAULT_SEED = Int(42)
@@ -101,23 +114,25 @@ def SplitDataset(
     tag(validation_set, "VALIDATION")
     tag(test_set, "TEST")
 
-    def _pop_non_isolated(pool):
-        """Pop a random non-ISOLATED_ATOM element from the given list."""
+    def _pop_non_isolated(pool, label):
+        """Pop a random non-ISOLATED_ATOM element from the given list, re-tagged with `label`."""
         non_isolated_indices = [i for i, el in enumerate(pool) if el.get("gen_method", "UNKNOWN") != "ISOLATED_ATOM"]
 
         if not non_isolated_indices:
             raise ValueError("Dataset too small: cannot split into TRAINING, VALIDATION, and TEST sets.")
 
         idx = random.choice(non_isolated_indices)
-        return pool.pop(idx)
+        el = pool.pop(idx)
+        el["set"] = label
+        return el
 
     # test or validation can be accidentally empty if the dataset is small
     # in that case we move one element from the training set to the empty set
     if len(validation_set) == 0:
-        validation_set.append(_pop_non_isolated(training_set))
+        validation_set.append(_pop_non_isolated(training_set, "VALIDATION"))
 
     if len(test_set) == 0:
-        test_set.append(_pop_non_isolated(training_set))
+        test_set.append(_pop_non_isolated(training_set, "TEST"))
 
     pes_global = PESData()
     pes_global.set_list(training_set + validation_set + test_set)
@@ -138,7 +153,12 @@ class TrainingWorkChain(WorkChain):
     ######################################################
     ENGINE_WORKCHAINS = {
         name: workchain
-        for name, workchain in (("MACE", MaceWorkChain), ("META", MetaWorkChain), ("NEQUIP", NequipWorkChain))
+        for name, workchain in (
+            ("MACE", MaceWorkChain),
+            ("META", MetaWorkChain),
+            ("NEQUIP", NequipWorkChain),
+            ("DEEPMD", DeepmdWorkChain),
+        )
         if workchain is not None
     }
     ACCEPTED_ENGINES = list(ENGINE_WORKCHAINS)
@@ -152,13 +172,14 @@ class TrainingWorkChain(WorkChain):
 
         if not cls.ACCEPTED_ENGINES:
             raise RuntimeError(
-                "No training engine plugin is installed. Install at least one of `aiida-mace` or `aiida-metatrain`."
+                "No training engine plugin is installed. Install at least one of `aiida-mace`, "
+                "`aiida-metatrain`, `aiida-nequip` or `aiida-deepmd`."
             )
 
         spec.input(
             "num_potentials",
             valid_type=Int,
-            default=lambda: Int(1),
+            default=lambda: Int(2),
             required=False,
             validator=cls.validate_num_potentials,
         )

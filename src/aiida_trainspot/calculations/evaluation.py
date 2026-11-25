@@ -30,7 +30,7 @@ class EvaluationCalculation(CalcJob):
             "engine",
             valid_type=Str,
             required=True,
-            help="Which engine trained the committee members (MACE/META/NEQUIP); picks the evaluation "
+            help="Which engine trained the committee members (MACE/META/NEQUIP/DEEPMD); picks the evaluation "
             "backend in the portable code (forwarded as --engine).",
         )
         spec.input_namespace(

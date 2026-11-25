@@ -66,7 +66,7 @@ def _rmse_subtitle(ax, rmse_dict, prop_key, unit):
     val = committee.get(f"rmse_{prop_key}")
     if val is not None:
         ax.annotate(
-            f"RMSE = {val:.3f} {unit}",
+            f"RMSE = {val:.4f} {unit}",
             xy=(0.5, 1.01),
             xycoords="axes fraction",
             ha="center",

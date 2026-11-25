@@ -134,9 +134,6 @@ DEFAULT_parameters = Dict(
             "dimension": "3",
             "boundary": "p p p",
         },
-        "potential": {
-            "potential_style_options": "mace no_domain_decomposition",
-        },
         "control": {
             "timestep": 0.001,
             "newton": "on",
@@ -277,7 +274,10 @@ class ExplorationWorkChain(WorkChain):
             inputs.lammps.structure = StructureData(ase=structure)
 
             base_pair_style = self.inputs.potential_pair_style.value
-            use_vdw_d2 = self.inputs.protocol is not None and self.inputs.protocol.value == "vdw_d2"
+            # `protocol` is optional with no default: when it is not given it is absent from the
+            # inputs, and attribute access would raise.
+            protocol = self.inputs.get("protocol")
+            use_vdw_d2 = protocol is not None and protocol.value == "vdw_d2"
 
             _, engine = pe.match_engine(base_pair_style)
             if engine is None:
