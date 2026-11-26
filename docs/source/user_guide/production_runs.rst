@@ -39,10 +39,10 @@ The example below is for Leonardo (Booster partition) at CINECA, where all of th
 other clusters have their own account, partition and QoS names. For brevity the function below,
 the same as in the first-run script, applies one set of settings to every calculation; nothing
 prevents passing different ones per code, which is what `examples/graphene/run_atp.py
-<https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/run_atp.py>`_
+<https://github.com/aiida-trieste-developers/aiida-trainspot/blob/main/examples/graphene/run_atp.py>`_
 does with one block of settings per code. The matching ``computer`` and ``code`` definitions are in
 `examples/setup_codes
-<https://github.com/aiida-trieste-developers/aiida-trains-pot/tree/main/examples/setup_codes>`_.
+<https://github.com/aiida-trieste-developers/aiida-trainspot/tree/main/examples/setup_codes>`_.
 
 .. code-block:: python
 
@@ -120,11 +120,11 @@ unset therefore gives ``metatomic``; setting it explicitly is clearer.
 
 The training itself is configured with a dictionary in the native format of the engine: ``training.mace.train.mace_config`` (see
 `examples/graphene/mace_config.yml
-<https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/mace_config.yml>`_)
+<https://github.com/aiida-trieste-developers/aiida-trainspot/blob/main/examples/graphene/mace_config.yml>`_)
 or ``training.meta.train.meta_config`` (see `examples/graphene/meta_config.yml
-<https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/meta_config.yml>`_).
+<https://github.com/aiida-trieste-developers/aiida-trainspot/blob/main/examples/graphene/meta_config.yml>`_).
 A complete metatrain run is `examples/graphene/run_atp_meta.py
-<https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/run_atp_meta.py>`_.
+<https://github.com/aiida-trieste-developers/aiida-trainspot/blob/main/examples/graphene/run_atp_meta.py>`_.
 
 .. _production-builder-args:
 
@@ -304,7 +304,7 @@ the linear fit is the factor that scales ``thr_energy``, ``thr_forces`` and ``th
 Both functions take ``cycles`` (1-based loop indices; default all completed loops), ``sets`` (a
 subset of ``"training"``, ``"validation"`` and ``"test"``), ``show`` and ``save_path``. In a
 notebook the figures are displayed inline. A script with these calls is `examples/plot_results.py
-<https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/plot_results.py>`_.
+<https://github.com/aiida-trieste-developers/aiida-trainspot/blob/main/examples/plot_results.py>`_.
 
 The outputs of the workchain (``dataset``, ``models_lammps``, ``models_ase``, ``RMSE``, ...) are
 listed in :ref:`loop-stages`.

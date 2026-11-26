@@ -15,7 +15,7 @@ but a check that the installation, the codes and the scheduler settings work tog
 look at how the workflow is driven.
 
 The whole run is one Python script, `examples/graphene/get_started.py
-<https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/examples/graphene/get_started.py>`_,
+<https://github.com/aiida-trieste-developers/aiida-trainspot/blob/main/examples/graphene/get_started.py>`_,
 which reads ``gr8x8.xyz`` and ``mace_config.yml`` from its own directory. After filling in the
 placeholders marked ``<...>`` and the cluster settings it runs as is. The sections below go through
 it in order.

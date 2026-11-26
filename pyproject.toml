@@ -30,7 +30,7 @@ dependencies = [
 ]
 
 [project.urls]
-Source = "https://github.com/aiida-trieste-developers/aiida-trains-pot"
+Source = "https://github.com/aiida-trieste-developers/aiida-trainspot"
 
 
 

@@ -12,11 +12,11 @@ AiiDA-TrainsPot requires to have installed in the remote machine:
 
 ## Installation
 
-1. Clone and install aiida-trains-pot repository
+1. Clone and install aiida-trainspot repository
 
 ```
-git clone git@github.com:aiida-trieste-developers/aiida-trains-pot.git
-cd aiida-trains-pot
+git clone git@github.com:aiida-trieste-developers/aiida-trainspot.git
+cd aiida-trainspot
 pip install .
 ```
 

@@ -109,7 +109,7 @@ html_theme_options = {
         "alt_text": "AiiDA-TrainsPot",
     },
     "home_page_in_toc": True,
-    "repository_url": "https://github.com/aiida-trieste-developers/aiida-trains-pot",
+    "repository_url": "https://github.com/aiida-trieste-developers/aiida-trainspot",
     "repository_branch": "main",
     "use_repository_button": True,
     "use_issues_button": True,

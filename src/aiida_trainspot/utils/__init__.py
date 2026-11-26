@@ -1,4 +1,4 @@
-"""Utility functions for aiida-trains-pot package."""
+"""Utility functions for aiida-trainspot package."""
 
 from . import restart
 from .install_portable_codes import install_committee_evaluation

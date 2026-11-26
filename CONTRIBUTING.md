@@ -1,4 +1,4 @@
-# Contributing to aiida-trains-pot
+# Contributing to aiida-trainspot
 
 Thank you for your interest in contributing to My Project! Before you begin, please read and understand our Contributor License Agreement (CLA) located at [CLA.md](CLA.md).
 
@@ -9,7 +9,7 @@ Thank you for your interest in contributing to My Project! Before you begin, ple
 1. **Clone the Fork**: Clone your fork of the repository to your local machine.
 
    ```bash
-   git clone https://github.com/aiida-trieste-developers/aiida-trains-pot.git
+   git clone https://github.com/aiida-trieste-developers/aiida-trainspot.git
    cd my-project
 
    ```

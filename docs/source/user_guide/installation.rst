@@ -44,8 +44,8 @@ In order to install AiiDA-TrainsPot, you need to clone the repository and instal
 
 .. code-block:: bash
 
-   git clone git@github.com:aiida-trieste-developers/aiida-trains-pot.git
-   cd aiida-trains-pot
+   git clone git@github.com:aiida-trieste-developers/aiida-trainspot.git
+   cd aiida-trainspot
    pip install .
 
 .. warning::
@@ -89,7 +89,7 @@ In order to interact with the executables installed on the remote machine, AiiDA
 register a ``computer`` for the remote machine and a ``code`` for each executable it will run there:
 Quantum ESPRESSO, LAMMPS, and one per training-engine stage.
 A full set of working setup files for Leonardo at CINECA is in `examples/setup_codes
-<https://github.com/aiida-trieste-developers/aiida-trains-pot/tree/main/examples/setup_codes>`_ and
+<https://github.com/aiida-trieste-developers/aiida-trainspot/tree/main/examples/setup_codes>`_ and
 can be used as a template for other clusters.
 
 A detailed guide to registering computers and codes, and to setting up the SSH connection, can be

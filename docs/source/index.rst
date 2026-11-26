@@ -127,8 +127,8 @@ Contributions are welcome: see CONTRIBUTING.md_ and the CLA.md_.
 
 .. _AiiDA: http://aiida.net
 .. _aiida-quantumespresso: https://aiida-quantumespresso.readthedocs.io/
-.. _CLA.md: https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/CLA.md
-.. _CONTRIBUTING.md: https://github.com/aiida-trieste-developers/aiida-trains-pot/blob/main/CONTRIBUTING.md
+.. _CLA.md: https://github.com/aiida-trieste-developers/aiida-trainspot/blob/main/CLA.md
+.. _CONTRIBUTING.md: https://github.com/aiida-trieste-developers/aiida-trainspot/blob/main/CONTRIBUTING.md
 
 .. |AiiDA-TrainsPot paper| replace:: DOI: 10.1039/D6DD00005C
 .. _AiiDA-TrainsPot paper: https://doi.org/10.1039/d6dd00005c
