@@ -1,0 +1,65 @@
+name: docs
+
+# Build the documentation (English and every translation under docs/source/locale/) and publish it
+# on GitHub Pages at every push to main. Requires Settings > Pages > Source: "GitHub Actions".
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: Install the package and the documentation dependencies
+        run: |
+          pip install --upgrade pip
+          pip install ".[docs]"
+          pip install \
+            git+https://github.com/aiida-trieste-developers/aiida-mace.git \
+            git+https://github.com/aiida-trieste-developers/aiida-metatrain.git
+          pip install --force-reinstall --no-deps \
+            "aiida-lammps @ git+https://github.com/aiida-trieste-developers/aiida-lammps@2ea56006bae7f57fc703bf2ef1f8393c1e63fbbe"
+
+      - name: Build English and translations
+        working-directory: docs
+        env:
+          AIIDA_PATH: ${{ runner.temp }}/aiida
+        run: |
+          verdi presto --profile-name docs
+          make html-all
+
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/build/html
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
