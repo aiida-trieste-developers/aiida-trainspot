@@ -58,6 +58,7 @@ This project was supported by:
 - **[Scuola Internazionale Superiore di Studi Avanzati](https://www.sissa.it/it)**
 - **[Centro Nazionale di Ricerca HPC, Big Data e Quantum Computing](https://www.supercomputing-icsc.it/en/icsc-home/)**
 - **[EU Centre of Excellence "MaX – Materials Design at the Exascale"](https://www.max-centre.eu/)**
+- **POC Programma Operativo Complementare al POR FSE Friuli Venezia Giulia 2014-2020**
 
 <p align="center">
   <img src="docs/Università degli Studi di Trieste Logo.jpeg" alt="Università degli Studi di Trieste Logo" height="110" style="filter: invert(1);"/>
